@@ -1,0 +1,13 @@
+class RoutesNames {
+  const RoutesNames._();
+
+  static const String splash = '/splash';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String verifyEmail = '/verify-email';
+  static const String pendingApproval = '/pending-approval';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetCode = '/reset-code';
+  static const String setNewPassword = '/set-new-password';
+  static const String home = '/home';
+}
