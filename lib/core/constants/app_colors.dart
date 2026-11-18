@@ -5,7 +5,7 @@ class AppColors {
 
   // Legacy constant preserved for existing references
   static const Color lightGreyColor = Color(0xFFF4FAFA);
-
+  static const Color greyColor = Color.fromRGBO(215, 215, 215, 1);
   // Brand Blues & Gradient Stops
   static const Color gradientTopLight = Color(0xFFEAF4FF);
   static const Color gradientMidSky = Color(0xFF4CA1FF);

@@ -23,9 +23,31 @@ import 'package:shiftex/features/authentication/domain/usecases/reset_password_u
 import 'package:shiftex/features/authentication/domain/usecases/verify_email_otp_usecase.dart';
 import 'package:shiftex/features/authentication/domain/usecases/verify_password_reset_otp_usecase.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
+import 'package:shiftex/features/home/data/datasources/home_remote_data_source.dart';
+import 'package:shiftex/features/home/data/repositories/home_repository_impl.dart';
+import 'package:shiftex/features/home/domain/repositories/home_repository.dart';
+import 'package:shiftex/features/home/domain/usecases/generate_claim_qr_usecase.dart';
+import 'package:shiftex/features/home/domain/usecases/get_home_dashboard_usecase.dart';
+import 'package:shiftex/features/home/domain/usecases/track_advertisement_event_usecase.dart';
+import 'package:shiftex/features/claim_rewards/data/datasources/claim_rewards_remote_data_source.dart';
+import 'package:shiftex/features/claim_rewards/data/repositories/claim_rewards_repository_impl.dart';
+import 'package:shiftex/features/claim_rewards/domain/repositories/claim_rewards_repository.dart';
+import 'package:shiftex/features/claim_rewards/domain/usecases/cancel_reward_claim_usecase.dart';
+import 'package:shiftex/features/claim_rewards/domain/usecases/create_reward_claim_usecase.dart';
+import 'package:shiftex/features/claim_rewards/domain/usecases/get_claim_rewards_context_usecase.dart';
+import 'package:shiftex/features/claim_rewards/domain/usecases/get_customer_claim_status_usecase.dart';
+import 'package:shiftex/features/claim_rewards/presentation/bloc/claim_rewards_bloc.dart';
+import 'package:shiftex/features/customer_qr/data/datasources/customer_qr_remote_data_source.dart';
+import 'package:shiftex/features/customer_qr/data/repositories/customer_qr_repository_impl.dart';
+import 'package:shiftex/features/customer_qr/domain/repositories/customer_qr_repository.dart';
+import 'package:shiftex/features/customer_qr/domain/usecases/get_customer_personal_qr_usecase.dart';
+import 'package:shiftex/features/customer_qr/domain/usecases/revoke_customer_personal_qr_usecase.dart';
+import 'package:shiftex/features/customer_qr/presentation/bloc/customer_qr_bloc.dart';
+import 'package:shiftex/features/home/presentation/bloc/home_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final GetIt getIt = GetIt.instance;
+final GetIt sl = getIt;
 
 Future<void> initializeDependencies({
   SupabaseClient? customSupabaseClient,
@@ -70,6 +92,9 @@ Future<void> initializeDependencies({
       secureStorageService: getIt<SecureStorageService>(),
     ),
   );
+  getIt.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AccountApprovalRepository>(
@@ -78,6 +103,9 @@ Future<void> initializeDependencies({
   );
   getIt.registerLazySingleton<AuthenticationRepository>(
     () => AuthenticationRepositoryImpl(getIt<AuthenticationRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(getIt<HomeRemoteDataSource>()),
   );
 
   // Use Cases - Account Approval
@@ -117,6 +145,17 @@ Future<void> initializeDependencies({
     () => GetCurrentSessionProfileUseCase(getIt<AuthenticationRepository>()),
   );
 
+  // Use Cases - Customer Home Dashboard
+  getIt.registerLazySingleton<GetHomeDashboardUseCase>(
+    () => GetHomeDashboardUseCase(getIt<HomeRepository>()),
+  );
+  getIt.registerLazySingleton<GenerateClaimQrUseCase>(
+    () => GenerateClaimQrUseCase(getIt<HomeRepository>()),
+  );
+  getIt.registerLazySingleton<TrackAdvertisementEventUseCase>(
+    () => TrackAdvertisementEventUseCase(getIt<HomeRepository>()),
+  );
+
   // BLoCs
   getIt.registerLazySingleton<AuthenticationBloc>(
     () => AuthenticationBloc(
@@ -137,6 +176,62 @@ Future<void> initializeDependencies({
   getIt.registerFactory<AccountApprovalBloc>(
     () => AccountApprovalBloc(
       getApprovalStatusUseCase: getIt<GetApprovalStatusUseCase>(),
+    ),
+  );
+
+  getIt.registerFactory<HomeBloc>(
+    () => HomeBloc(
+      getHomeDashboardUseCase: getIt<GetHomeDashboardUseCase>(),
+      generateClaimQrUseCase: getIt<GenerateClaimQrUseCase>(),
+      trackAdvertisementEventUseCase: getIt<TrackAdvertisementEventUseCase>(),
+    ),
+  );
+
+  // Customer Personal QR Display Feature
+  getIt.registerLazySingleton<CustomerQrRemoteDataSource>(
+    () => CustomerQrRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<CustomerQrRepository>(
+    () => CustomerQrRepositoryImpl(getIt<CustomerQrRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetCustomerPersonalQrUseCase>(
+    () => GetCustomerPersonalQrUseCase(getIt<CustomerQrRepository>()),
+  );
+  getIt.registerLazySingleton<RevokeCustomerPersonalQrUseCase>(
+    () => RevokeCustomerPersonalQrUseCase(getIt<CustomerQrRepository>()),
+  );
+  getIt.registerFactory<CustomerQrBloc>(
+    () => CustomerQrBloc(
+      getCustomerPersonalQrUseCase: getIt<GetCustomerPersonalQrUseCase>(),
+      revokeCustomerPersonalQrUseCase: getIt<RevokeCustomerPersonalQrUseCase>(),
+    ),
+  );
+
+  // Claim Rewards Feature
+  getIt.registerLazySingleton<ClaimRewardsRemoteDataSource>(
+    () => ClaimRewardsRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<ClaimRewardsRepository>(
+    () => ClaimRewardsRepositoryImpl(getIt<ClaimRewardsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<GetClaimRewardsContextUseCase>(
+    () => GetClaimRewardsContextUseCase(getIt<ClaimRewardsRepository>()),
+  );
+  getIt.registerLazySingleton<CreateRewardClaimUseCase>(
+    () => CreateRewardClaimUseCase(getIt<ClaimRewardsRepository>()),
+  );
+  getIt.registerLazySingleton<GetCustomerClaimStatusUseCase>(
+    () => GetCustomerClaimStatusUseCase(getIt<ClaimRewardsRepository>()),
+  );
+  getIt.registerLazySingleton<CancelRewardClaimUseCase>(
+    () => CancelRewardClaimUseCase(getIt<ClaimRewardsRepository>()),
+  );
+  getIt.registerFactory<ClaimRewardsBloc>(
+    () => ClaimRewardsBloc(
+      getClaimRewardsContextUseCase: getIt<GetClaimRewardsContextUseCase>(),
+      createRewardClaimUseCase: getIt<CreateRewardClaimUseCase>(),
+      getCustomerClaimStatusUseCase: getIt<GetCustomerClaimStatusUseCase>(),
+      cancelRewardClaimUseCase: getIt<CancelRewardClaimUseCase>(),
     ),
   );
 

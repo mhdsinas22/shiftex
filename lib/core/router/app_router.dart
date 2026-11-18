@@ -12,7 +12,9 @@ import 'package:shiftex/features/authentication/presentation/pages/registration_
 import 'package:shiftex/features/authentication/presentation/pages/reset_code_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/set_new_password_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/verify_email_otp_page.dart';
-import 'package:shiftex/features/home/home_page.dart';
+import 'package:shiftex/features/claim_rewards/presentation/pages/claim_rewards_page.dart';
+import 'package:shiftex/features/customer_qr/presentation/pages/customer_qr_page.dart';
+import 'package:shiftex/features/home/presentation/pages/home_page.dart';
 import 'package:shiftex/features/splash/page/splash_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -94,6 +96,14 @@ class AppRouter {
           path: RoutesNames.home,
           builder: (context, state) => const HomePage(),
         ),
+        GoRoute(
+          path: RoutesNames.customerQr,
+          builder: (context, state) => const CustomerQrPage(),
+        ),
+        GoRoute(
+          path: RoutesNames.claimRewards,
+          builder: (context, state) => const ClaimRewardsPage(),
+        ),
       ],
     );
   }
@@ -123,9 +133,11 @@ class AppRouter {
       return matchedLocation == RoutesNames.splash ? null : RoutesNames.splash;
     }
 
-    // 2. Loading state -> stay on current screen unless trying to access /home without an approved profile
+    // 2. Loading state -> stay on current screen unless trying to access protected customer routes without an approved profile
     if (authState is AuthenticationLoading) {
-      if (matchedLocation == RoutesNames.home) {
+      if (matchedLocation == RoutesNames.home ||
+          matchedLocation == RoutesNames.customerQr ||
+          matchedLocation == RoutesNames.claimRewards) {
         final profile = authState.currentProfile;
         if (profile == null || !profile.isApproved) {
           return RoutesNames.splash;
@@ -134,14 +146,18 @@ class AppRouter {
       return null;
     }
 
-    // 3. Approved customer -> grant access to /home and redirect away from auth/pending screens
+    // 3. Approved customer -> grant access to customer routes and redirect away from auth/pending screens
     if (authState is AuthenticationSuccess) {
       if (!authState.profile.isApproved) {
         return matchedLocation == RoutesNames.pendingApproval
             ? null
             : RoutesNames.pendingApproval;
       }
-      return matchedLocation == RoutesNames.home ? null : RoutesNames.home;
+      final isAllowedRoute =
+          matchedLocation == RoutesNames.home ||
+          matchedLocation == RoutesNames.customerQr ||
+          matchedLocation == RoutesNames.claimRewards;
+      return isAllowedRoute ? null : RoutesNames.home;
     }
 
     // 4. Pending, Rejected, or Suspended customer -> strictly lock to /pending-approval
@@ -162,8 +178,9 @@ class AppRouter {
       }
       return Uri(
         path: RoutesNames.verifyEmail,
-        queryParameters:
-            authState.email.isNotEmpty ? {'email': authState.email} : null,
+        queryParameters: authState.email.isNotEmpty
+            ? {'email': authState.email}
+            : null,
       ).toString();
     }
 
@@ -171,8 +188,9 @@ class AppRouter {
       if (matchedLocation == RoutesNames.verifyEmail) return null;
       return Uri(
         path: RoutesNames.verifyEmail,
-        queryParameters:
-            authState.email.isNotEmpty ? {'email': authState.email} : null,
+        queryParameters: authState.email.isNotEmpty
+            ? {'email': authState.email}
+            : null,
       ).toString();
     }
 
@@ -193,8 +211,9 @@ class AppRouter {
       }
       return Uri(
         path: RoutesNames.resetCode,
-        queryParameters:
-            authState.email.isNotEmpty ? {'email': authState.email} : null,
+        queryParameters: authState.email.isNotEmpty
+            ? {'email': authState.email}
+            : null,
       ).toString();
     }
 

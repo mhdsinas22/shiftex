@@ -32,17 +32,45 @@ void main() {
       expect(
         AppRouter.evaluateAuthRedirect(
           authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.customerQr,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.claimRewards,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
           matchedLocation: RoutesNames.splash,
         ),
         isNull,
       );
     });
 
-    test('Unauthenticated users are blocked from /home and /pending-approval', () {
+    test('Unauthenticated users are blocked from /home, /customer-qr, and /pending-approval', () {
       expect(
         AppRouter.evaluateAuthRedirect(
           authState: const Unauthenticated(),
           matchedLocation: RoutesNames.home,
+        ),
+        RoutesNames.login,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const Unauthenticated(),
+          matchedLocation: RoutesNames.customerQr,
+        ),
+        RoutesNames.login,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const Unauthenticated(),
+          matchedLocation: RoutesNames.claimRewards,
         ),
         RoutesNames.login,
       );
@@ -105,6 +133,20 @@ void main() {
           expect(
             AppRouter.evaluateAuthRedirect(
               authState: restrictedState,
+              matchedLocation: RoutesNames.customerQr,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
+              matchedLocation: RoutesNames.claimRewards,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
               matchedLocation: RoutesNames.login,
             ),
             RoutesNames.pendingApproval,
@@ -121,7 +163,7 @@ void main() {
     );
 
     test(
-      'Only approved customers in AuthenticationSuccess can access /home',
+      'Only approved customers in AuthenticationSuccess can access /home and /customer-qr',
       () {
         final approvedState = AuthenticationSuccess(
           buildProfile(AccountApprovalStatus.approved),
@@ -133,6 +175,38 @@ void main() {
             matchedLocation: RoutesNames.home,
           ),
           isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.customerQr,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.claimRewards,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: AuthenticationLoading(
+              currentProfile: buildProfile(AccountApprovalStatus.approved),
+            ),
+            matchedLocation: RoutesNames.customerQr,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: AuthenticationLoading(
+              currentProfile: buildProfile(AccountApprovalStatus.pending),
+            ),
+            matchedLocation: RoutesNames.customerQr,
+          ),
+          RoutesNames.splash,
         );
         expect(
           AppRouter.evaluateAuthRedirect(

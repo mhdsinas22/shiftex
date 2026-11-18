@@ -145,18 +145,21 @@ class _LoginPageState extends State<LoginPage> {
                     const Expanded(
                       child: Divider(color: AppColors.divider, thickness: 1),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      child: Text(
-                        AppStrings.orSignInWithMobileEmail,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
+                    Flexible(
+                      flex: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        child: Text(
+                          AppStrings.orSignInWithMobileEmail,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                     ),

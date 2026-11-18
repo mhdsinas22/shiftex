@@ -10,4 +10,6 @@ class RoutesNames {
   static const String resetCode = '/reset-code';
   static const String setNewPassword = '/set-new-password';
   static const String home = '/home';
+  static const String customerQr = '/customer-qr';
+  static const String claimRewards = '/claim-rewards';
 }

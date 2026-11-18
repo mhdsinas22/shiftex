@@ -118,13 +118,9 @@ void main() {
         password: '',
       ),
     );
-    registerFallbackValue(
-      const VerifyEmailOtpParams(email: '', otpCode: ''),
-    );
+    registerFallbackValue(const VerifyEmailOtpParams(email: '', otpCode: ''));
     registerFallbackValue(const ResendEmailOtpParams(email: ''));
-    registerFallbackValue(
-      const LoginParams(identifier: '', password: ''),
-    );
+    registerFallbackValue(const LoginParams(identifier: '', password: ''));
     registerFallbackValue(const ForgotPasswordParams(email: ''));
     registerFallbackValue(
       const VerifyPasswordResetOtpParams(email: '', otpCode: ''),
@@ -241,8 +237,8 @@ void main() {
       await tapVisible(tester, find.text('Refresh Status'));
       await pumpTransition(tester);
 
-      expect(find.text('Welcome to Shiiftex'), findsOneWidget);
-      expect(find.text('Approved Customer Account'), findsOneWidget);
+      expect(find.text('Hello, Rahul'), findsOneWidget);
+      expect(find.text('Available Balance'), findsOneWidget);
     },
   );
 
