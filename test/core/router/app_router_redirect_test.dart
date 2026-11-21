@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shiftex/core/router/app_router.dart';
+import 'package:shiftex/core/routes/app_router.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
 import 'package:shiftex/features/account_approval/domain/entities/approval_status.dart';
 import 'package:shiftex/features/account_approval/domain/entities/customer_profile_entity.dart';
@@ -46,63 +46,94 @@ void main() {
       expect(
         AppRouter.evaluateAuthRedirect(
           authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.activityHistory,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.notifications,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
           matchedLocation: RoutesNames.splash,
         ),
         isNull,
       );
     });
 
-    test('Unauthenticated users are blocked from /home, /customer-qr, and /pending-approval', () {
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.home,
-        ),
-        RoutesNames.login,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.customerQr,
-        ),
-        RoutesNames.login,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.claimRewards,
-        ),
-        RoutesNames.login,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.pendingApproval,
-        ),
-        RoutesNames.login,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.setNewPassword,
-        ),
-        RoutesNames.login,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.login,
-        ),
-        isNull,
-      );
-      expect(
-        AppRouter.evaluateAuthRedirect(
-          authState: const Unauthenticated(),
-          matchedLocation: RoutesNames.register,
-        ),
-        isNull,
-      );
-    });
+    test(
+      'Unauthenticated users are blocked from /home, /customer-qr, and /pending-approval',
+      () {
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.home,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.customerQr,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.claimRewards,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.activityHistory,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.notifications,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.pendingApproval,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.setNewPassword,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.login,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.register,
+          ),
+          isNull,
+        );
+      },
+    );
 
     test(
       'Pending, Rejected, and Suspended accounts CANNOT access /home and are redirected to /pending-approval',
@@ -141,6 +172,20 @@ void main() {
             AppRouter.evaluateAuthRedirect(
               authState: restrictedState,
               matchedLocation: RoutesNames.claimRewards,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
+              matchedLocation: RoutesNames.activityHistory,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
+              matchedLocation: RoutesNames.notifications,
             ),
             RoutesNames.pendingApproval,
           );
@@ -187,6 +232,20 @@ void main() {
           AppRouter.evaluateAuthRedirect(
             authState: approvedState,
             matchedLocation: RoutesNames.claimRewards,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.activityHistory,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.notifications,
           ),
           isNull,
         );

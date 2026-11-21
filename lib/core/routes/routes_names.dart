@@ -12,4 +12,6 @@ class RoutesNames {
   static const String home = '/home';
   static const String customerQr = '/customer-qr';
   static const String claimRewards = '/claim-rewards';
+  static const String activityHistory = '/activity-history';
+  static const String notifications = '/notifications';
 }

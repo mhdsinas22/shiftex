@@ -2,25 +2,11 @@ import 'package:equatable/equatable.dart';
 import 'package:shiftex/features/home/domain/entities/customer_qr_token_entity.dart';
 import 'package:shiftex/features/home/domain/entities/home_dashboard_entity.dart';
 
-enum HomeStatus {
-  initial,
-  loading,
-  refreshing,
-  loaded,
-  error,
-}
+enum HomeStatus { initial, loading, refreshing, loaded, error }
 
-enum QrModalStatus {
-  idle,
-  loading,
-  ready,
-  error,
-}
+enum QrModalStatus { idle, loading, ready, error }
 
-enum HomeTab {
-  home,
-  history,
-}
+enum HomeTab { home, showqr, history }
 
 class HomeState extends Equatable {
   final HomeStatus status;
@@ -64,8 +50,9 @@ class HomeState extends Equatable {
       showStreakCelebration:
           showStreakCelebration ?? this.showStreakCelebration,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      feedbackMessage:
-          clearFeedback ? null : (feedbackMessage ?? this.feedbackMessage),
+      feedbackMessage: clearFeedback
+          ? null
+          : (feedbackMessage ?? this.feedbackMessage),
     );
   }
 

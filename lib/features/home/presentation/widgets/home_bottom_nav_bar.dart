@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shiftex/core/constants/app_colors.dart';
-import 'package:shiftex/features/home/presentation/bloc/home_state.dart';
 
 class HomeBottomNavBar extends StatelessWidget {
-  final HomeTab selectedTab;
-  final ValueChanged<HomeTab> onTabSelected;
-  final VoidCallback onScanQrTap;
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
 
   const HomeBottomNavBar({
     super.key,
-    required this.selectedTab,
+    required this.currentIndex,
     required this.onTabSelected,
-    required this.onScanQrTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isHome = selectedTab == HomeTab.home;
-    final isHistory = selectedTab == HomeTab.history;
+    final isHome = currentIndex == 0;
+    final isHistory = currentIndex == 2;
 
     return SafeArea(
       top: false,
@@ -43,29 +41,31 @@ class HomeBottomNavBar extends StatelessWidget {
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(24),
-                  onTap: () => onTabSelected(HomeTab.home),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onTabSelected(0);
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         isHome ? Icons.home_rounded : Icons.home_outlined,
                         size: 22,
-                        color:
-                            isHome
-                                ? AppColors.primaryBlue
-                                : AppColors.textSecondary,
+                        color: isHome
+                            ? AppColors.primaryBlue
+                            : AppColors.textSecondary,
                       ),
                       const SizedBox(height: 3),
                       Text(
                         'Home',
                         style: TextStyle(
                           fontSize: 11.5,
-                          fontWeight:
-                              isHome ? FontWeight.w700 : FontWeight.w500,
-                          color:
-                              isHome
-                                  ? AppColors.primaryBlue
-                                  : AppColors.textSecondary,
+                          fontWeight: isHome
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isHome
+                              ? AppColors.primaryBlue
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -82,7 +82,10 @@ class HomeBottomNavBar extends StatelessWidget {
                   shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
                   child: InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: onScanQrTap,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onTabSelected(1);
+                    },
                     child: const SizedBox(
                       width: 54,
                       height: 54,
@@ -98,7 +101,10 @@ class HomeBottomNavBar extends StatelessWidget {
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(24),
-                  onTap: () => onTabSelected(HomeTab.history),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onTabSelected(2);
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -107,22 +113,21 @@ class HomeBottomNavBar extends StatelessWidget {
                             ? Icons.receipt_long_rounded
                             : Icons.receipt_long_outlined,
                         size: 22,
-                        color:
-                            isHistory
-                                ? AppColors.primaryBlue
-                                : AppColors.textSecondary,
+                        color: isHistory
+                            ? AppColors.primaryBlue
+                            : AppColors.textSecondary,
                       ),
                       const SizedBox(height: 3),
                       Text(
                         'History',
                         style: TextStyle(
                           fontSize: 11.5,
-                          fontWeight:
-                              isHistory ? FontWeight.w700 : FontWeight.w500,
-                          color:
-                              isHistory
-                                  ? AppColors.primaryBlue
-                                  : AppColors.textSecondary,
+                          fontWeight: isHistory
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isHistory
+                              ? AppColors.primaryBlue
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ],

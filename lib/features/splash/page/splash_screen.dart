@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shiftex/core/constants/app_colors.dart';
-import 'package:shiftex/core/router/app_router.dart';
+import 'package:shiftex/core/routes/app_router.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
 import 'package:shiftex/core/widgets/shiiftex_logo_badge.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';

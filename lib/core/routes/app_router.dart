@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
+import 'package:shiftex/core/widgets/customer_bottom_nav_bar.dart';
 import 'package:shiftex/features/account_approval/presentation/pages/pending_approval_page.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
@@ -12,9 +13,11 @@ import 'package:shiftex/features/authentication/presentation/pages/registration_
 import 'package:shiftex/features/authentication/presentation/pages/reset_code_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/set_new_password_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/verify_email_otp_page.dart';
+import 'package:shiftex/features/activity_history/presentation/pages/activity_history_page.dart';
 import 'package:shiftex/features/claim_rewards/presentation/pages/claim_rewards_page.dart';
 import 'package:shiftex/features/customer_qr/presentation/pages/customer_qr_page.dart';
 import 'package:shiftex/features/home/presentation/pages/home_page.dart';
+import 'package:shiftex/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:shiftex/features/splash/page/splash_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -92,17 +95,72 @@ class AppRouter {
           path: RoutesNames.setNewPassword,
           builder: (context, state) => const SetNewPasswordPage(),
         ),
-        GoRoute(
-          path: RoutesNames.home,
-          builder: (context, state) => const HomePage(),
-        ),
-        GoRoute(
-          path: RoutesNames.customerQr,
-          builder: (context, state) => const CustomerQrPage(),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return CustomerBottomNavBar(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: RoutesNames.home,
+                  builder: (context, state) => HomePage(
+                    initialSection: state.uri.queryParameters['section'],
+                  ),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: RoutesNames.customerQr,
+                  builder: (context, state) => const CustomerQrPage(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: RoutesNames.activityHistory,
+                  builder: (context, state) => const ActivityHistoryPage(),
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: RoutesNames.claimRewards,
           builder: (context, state) => const ClaimRewardsPage(),
+        ),
+        GoRoute(
+          path: RoutesNames.notifications,
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            opaque: false,
+            barrierDismissible: true,
+            barrierColor: Colors.transparent,
+            transitionDuration: const Duration(milliseconds: 260),
+            reverseTransitionDuration: const Duration(milliseconds: 220),
+            child: const NotificationsPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              final curved = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              );
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.14),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: FadeTransition(
+                  opacity: curved,
+                  child: child,
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -137,7 +195,9 @@ class AppRouter {
     if (authState is AuthenticationLoading) {
       if (matchedLocation == RoutesNames.home ||
           matchedLocation == RoutesNames.customerQr ||
-          matchedLocation == RoutesNames.claimRewards) {
+          matchedLocation == RoutesNames.claimRewards ||
+          matchedLocation == RoutesNames.activityHistory ||
+          matchedLocation == RoutesNames.notifications) {
         final profile = authState.currentProfile;
         if (profile == null || !profile.isApproved) {
           return RoutesNames.splash;
@@ -156,7 +216,9 @@ class AppRouter {
       final isAllowedRoute =
           matchedLocation == RoutesNames.home ||
           matchedLocation == RoutesNames.customerQr ||
-          matchedLocation == RoutesNames.claimRewards;
+          matchedLocation == RoutesNames.claimRewards ||
+          matchedLocation == RoutesNames.activityHistory ||
+          matchedLocation == RoutesNames.notifications;
       return isAllowedRoute ? null : RoutesNames.home;
     }
 

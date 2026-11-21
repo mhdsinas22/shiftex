@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shiftex/core/constants/app_colors.dart';
 import 'package:shiftex/core/extensions/context_extensions.dart';
 import 'package:shiftex/core/utils/responsive_layout.dart';
-import 'package:shiftex/core/widgets/shiiftex_info_bottom_sheet.dart';
+import 'package:shiftex/core/widgets/profile_modal_bottom_sheet.dart';
 import 'package:shiftex/features/account_approval/domain/entities/customer_profile_entity.dart';
+import 'package:shiftex/features/activity_history/presentation/pages/activity_history_page.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
-import 'package:shiftex/features/authentication/presentation/bloc/authentication_event.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
 import 'package:shiftex/features/claim_rewards/presentation/widgets/claim_amount_bottom_sheet.dart';
 import 'package:shiftex/features/home/domain/entities/customer_qr_token_entity.dart';
@@ -18,12 +18,9 @@ import 'package:shiftex/features/home/presentation/bloc/home_event.dart';
 import 'package:shiftex/features/home/presentation/bloc/home_state.dart';
 import 'package:shiftex/features/home/presentation/widgets/available_balance_card.dart';
 import 'package:shiftex/features/home/presentation/widgets/customer_greeting_section.dart';
-import 'package:shiftex/features/home/presentation/widgets/customer_profile_sheet.dart';
 import 'package:shiftex/features/home/presentation/widgets/daily_streak_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
-import 'package:shiftex/features/customer_qr/presentation/pages/customer_qr_page.dart';
-import 'package:shiftex/features/home/presentation/widgets/home_bottom_nav_bar.dart';
 import 'package:shiftex/features/home/presentation/widgets/home_header_bar.dart';
 import 'package:shiftex/features/home/presentation/widgets/home_state_views.dart';
 import 'package:shiftex/features/home/presentation/widgets/locked_points_card.dart';
@@ -31,26 +28,34 @@ import 'package:shiftex/features/home/presentation/widgets/recent_rewards_sectio
 import 'package:shiftex/features/home/presentation/widgets/single_use_claim_qr_sheet.dart';
 import 'package:shiftex/features/home/presentation/widgets/streak_celebration_dialog.dart';
 import 'package:shiftex/features/home/presentation/widgets/transactions_history_view.dart';
+import 'package:shiftex/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:shiftex/injection_container.dart';
 
 class HomePage extends StatefulWidget {
   final HomeBloc? homeBloc;
+  final String? initialSection;
 
-  const HomePage({super.key, this.homeBloc});
+  const HomePage({super.key, this.homeBloc, this.initialSection});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _walletSectionKey = GlobalKey();
+  final GlobalKey _streakSectionKey = GlobalKey();
+
   HomeBloc? _bloc;
   bool _ownsBloc = false;
   bool _isQrModalOpen = false;
   bool _isCelebrationDialogOpen = false;
+  String? _pendingScrollSection;
 
   @override
   void initState() {
     super.initState();
+    _pendingScrollSection = widget.initialSection;
     HomeBloc? resolved;
     if (widget.homeBloc != null) {
       resolved = widget.homeBloc;
@@ -71,10 +76,44 @@ class _HomePageState extends State<HomePage> {
     if (_bloc != null && _bloc!.state.status == HomeStatus.initial) {
       _bloc!.add(const HomeDashboardLoadRequested());
     }
+    _scheduleSectionScroll();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSection != null &&
+        widget.initialSection != oldWidget.initialSection) {
+      _pendingScrollSection = widget.initialSection;
+      _scheduleSectionScroll();
+    }
+  }
+
+  void _scheduleSectionScroll() {
+    final targetSection = _pendingScrollSection;
+    if (targetSection == null || targetSection.isEmpty) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final targetKey = targetSection == 'streak'
+          ? _streakSectionKey
+          : _walletSectionKey;
+      final targetContext = targetKey.currentContext;
+      if (targetContext != null) {
+        _pendingScrollSection = null;
+        Scrollable.ensureVisible(
+          targetContext,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          alignment: 0.12,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     if (_ownsBloc) {
       _bloc?.close();
     }
@@ -185,28 +224,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _openProfileSheet(
-    HomeDashboardEntity? dashboard,
-    CustomerProfileEntity? authProfile,
-  ) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (sheetContext) {
-        return CustomerProfileSheet(
-          dashboard: dashboard,
-          fallbackFullName: authProfile?.fullName ?? 'Member',
-          fallbackEmail: authProfile?.email ?? '',
-          fallbackMobile: authProfile?.mobileNumber ?? '',
-          onSignOut: () {
-            context.read<AuthenticationBloc>().add(const LogoutRequested());
-          },
-        );
-      },
+  void _openActivityHistory(BuildContext context) {
+    final router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.go(RoutesNames.activityHistory);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ActivityHistoryPage()),
     );
   }
 
@@ -226,20 +251,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       extendBody: true,
-      bottomNavigationBar: HomeBottomNavBar(
-        selectedTab: state.selectedTab,
-        onTabSelected: (tab) => _bloc?.add(HomeTabChanged(tab)),
-        onScanQrTap: () {
-          final router = GoRouter.maybeOf(context);
-          if (router != null) {
-            router.push(RoutesNames.customerQr);
-          } else {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const CustomerQrPage()),
-            );
-          }
-        },
-      ),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -248,6 +259,7 @@ class _HomePageState extends State<HomePage> {
             _bloc?.add(const HomeDashboardRefreshRequested());
           },
           child: SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(
               parent: ClampingScrollPhysics(),
             ),
@@ -263,16 +275,13 @@ class _HomePageState extends State<HomePage> {
                     HomeHeaderBar(
                       fullName: dashboard.fullName,
                       onNotificationTap: () {
-                        ShiiftexInfoBottomSheet.show(
-                          context,
-                          title: 'Notifications',
-                          message: dashboard.streak.claimedToday
-                              ? 'Today\'s daily streak check-in (+${dashboard.streak.dailyPoints} pts) is active. Next streak cycle resets at 06:00 AM IST.'
-                              : 'Welcome to your Shiiftex rewards dashboard! Check in daily to complete your 7-day streak.',
-                        );
+                        showNotificationsBottomSheet(context);
                       },
-                      onProfileTap: () =>
-                          _openProfileSheet(state.dashboard, authProfile),
+                      onProfileTap: () => openProfileSheet(
+                        state.dashboard,
+                        authProfile,
+                        context,
+                      ),
                     ),
                     const SizedBox(height: 18),
                     if (state.selectedTab == HomeTab.history)
@@ -301,28 +310,31 @@ class _HomePageState extends State<HomePage> {
                           },
                         )
                       else ...[
-                        AvailableBalanceCard(
-                          wallet: dashboard.wallet,
-                          onClaimRewardsTap: () {
-                            claimAmountBottomSheet(
-                              context,
-                              initialAvailablePoints:
-                                  dashboard.wallet.availablePoints,
-                              initialPointsToInrRate:
-                                  dashboard.wallet.pointsToInrRate,
-                              initialLockedPoints:
-                                  dashboard.wallet.lockedPoints,
-                              onFlowClosed: () {
-                                if (mounted) {
-                                  _bloc?.add(
-                                    const HomeDashboardLoadRequested(
-                                      performDailyCheckIn: false,
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
+                        Container(
+                          key: _walletSectionKey,
+                          child: AvailableBalanceCard(
+                            wallet: dashboard.wallet,
+                            onClaimRewardsTap: () {
+                              claimAmountBottomSheet(
+                                context,
+                                initialAvailablePoints:
+                                    dashboard.wallet.availablePoints,
+                                initialPointsToInrRate:
+                                    dashboard.wallet.pointsToInrRate,
+                                initialLockedPoints:
+                                    dashboard.wallet.lockedPoints,
+                                onFlowClosed: () {
+                                  if (mounted) {
+                                    _bloc?.add(
+                                      const HomeDashboardLoadRequested(
+                                        performDailyCheckIn: false,
+                                      ),
+                                    );
+                                  }
+                                },
+                              );
+                            },
+                          ),
                         ),
                         const SizedBox(height: 16),
                         LockedPointsCard(
@@ -330,15 +342,16 @@ class _HomePageState extends State<HomePage> {
                           nextAllocation: dashboard.nextUnlockAllocation,
                         ),
                         const SizedBox(height: 16),
-                        DailyStreakCard(streak: dashboard.streak),
+                        DailyStreakCard(
+                          key: _streakSectionKey,
+                          streak: dashboard.streak,
+                        ),
 
                         const SizedBox(height: 16),
                         RecentRewardsSection(
                           transactions: dashboard.recentTransactions,
                           pointsToInrRate: dashboard.wallet.pointsToInrRate,
-                          onViewAllTap: () {
-                            _bloc?.add(const HomeTabChanged(HomeTab.history));
-                          },
+                          onViewAllTap: () => _openActivityHistory(context),
                         ),
                       ],
                     ],
@@ -367,6 +380,10 @@ class _HomePageState extends State<HomePage> {
       value: _bloc!,
       child: BlocConsumer<HomeBloc, HomeState>(
         listener: (context, state) {
+          if (state.status == HomeStatus.loaded &&
+              _pendingScrollSection != null) {
+            _scheduleSectionScroll();
+          }
           if (state.feedbackMessage != null &&
               state.feedbackMessage!.isNotEmpty) {
             context.showFeedbackSnackBar(

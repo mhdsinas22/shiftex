@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shiftex/core/config/supabase_config.dart';
 import 'package:shiftex/core/network/network_info.dart';
-import 'package:shiftex/core/router/app_router.dart';
+import 'package:shiftex/core/routes/app_router.dart';
 import 'package:shiftex/core/services/secure_storage_service.dart';
 import 'package:shiftex/features/account_approval/data/datasources/account_approval_remote_data_source.dart';
 import 'package:shiftex/features/account_approval/data/repositories/account_approval_repository_impl.dart';
@@ -10,6 +10,23 @@ import 'package:shiftex/features/account_approval/domain/repositories/account_ap
 import 'package:shiftex/features/account_approval/domain/usecases/ensure_customer_profile_usecase.dart';
 import 'package:shiftex/features/account_approval/domain/usecases/get_approval_status_usecase.dart';
 import 'package:shiftex/features/account_approval/presentation/bloc/account_approval_bloc.dart';
+import 'package:shiftex/features/activity_history/data/datasources/activity_history_remote_data_source.dart';
+import 'package:shiftex/features/activity_history/data/datasources/statement_exporter_service.dart';
+import 'package:shiftex/features/activity_history/data/repositories/activity_history_repository_impl.dart';
+import 'package:shiftex/features/activity_history/domain/repositories/activity_history_repository.dart';
+import 'package:shiftex/features/activity_history/domain/usecases/export_monthly_statement_usecase.dart';
+import 'package:shiftex/features/activity_history/domain/usecases/get_activity_history_usecase.dart';
+import 'package:shiftex/features/activity_history/domain/usecases/get_monthly_statement_usecase.dart';
+import 'package:shiftex/features/activity_history/domain/usecases/get_transaction_detail_usecase.dart';
+import 'package:shiftex/features/activity_history/presentation/bloc/activity_history_bloc.dart';
+import 'package:shiftex/features/advertisements/data/datasources/advertisement_local_data_source.dart';
+import 'package:shiftex/features/advertisements/data/datasources/advertisement_remote_data_source.dart';
+import 'package:shiftex/features/advertisements/data/repositories/advertisement_repository_impl.dart';
+import 'package:shiftex/features/advertisements/domain/repositories/advertisement_repository.dart';
+import 'package:shiftex/features/advertisements/domain/usecases/clear_advertisement_session_usecase.dart';
+import 'package:shiftex/features/advertisements/domain/usecases/get_eligible_advertisement_usecase.dart';
+import 'package:shiftex/features/advertisements/domain/usecases/track_advertisement_analytics_usecase.dart';
+import 'package:shiftex/features/advertisements/presentation/bloc/advertisement_bloc.dart';
 import 'package:shiftex/features/authentication/data/datasources/authentication_remote_data_source.dart';
 import 'package:shiftex/features/authentication/data/repositories/authentication_repository_impl.dart';
 import 'package:shiftex/features/authentication/domain/repositories/authentication_repository.dart';
@@ -44,6 +61,16 @@ import 'package:shiftex/features/customer_qr/domain/usecases/get_customer_person
 import 'package:shiftex/features/customer_qr/domain/usecases/revoke_customer_personal_qr_usecase.dart';
 import 'package:shiftex/features/customer_qr/presentation/bloc/customer_qr_bloc.dart';
 import 'package:shiftex/features/home/presentation/bloc/home_bloc.dart';
+import 'package:shiftex/features/notifications/data/datasources/notification_local_data_source.dart';
+import 'package:shiftex/features/notifications/data/datasources/notification_remote_data_source.dart';
+import 'package:shiftex/features/notifications/data/repositories/notification_repository_impl.dart';
+import 'package:shiftex/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:shiftex/features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'package:shiftex/features/notifications/domain/usecases/get_unread_notification_count_usecase.dart';
+import 'package:shiftex/features/notifications/domain/usecases/mark_all_notifications_read_usecase.dart';
+import 'package:shiftex/features/notifications/domain/usecases/mark_notification_read_usecase.dart';
+import 'package:shiftex/features/notifications/domain/usecases/watch_notifications_realtime_usecase.dart';
+import 'package:shiftex/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -232,6 +259,118 @@ Future<void> initializeDependencies({
       createRewardClaimUseCase: getIt<CreateRewardClaimUseCase>(),
       getCustomerClaimStatusUseCase: getIt<GetCustomerClaimStatusUseCase>(),
       cancelRewardClaimUseCase: getIt<CancelRewardClaimUseCase>(),
+    ),
+  );
+
+  // Activity & History Feature
+  getIt.registerLazySingleton<StatementExporterService>(
+    () => const StatementExporterService(),
+  );
+  getIt.registerLazySingleton<ActivityHistoryRemoteDataSource>(
+    () => ActivityHistoryRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<ActivityHistoryRepository>(
+    () => ActivityHistoryRepositoryImpl(
+      remoteDataSource: getIt<ActivityHistoryRemoteDataSource>(),
+      statementExporterService: getIt<StatementExporterService>(),
+    ),
+  );
+  getIt.registerLazySingleton<GetActivityHistoryUseCase>(
+    () => GetActivityHistoryUseCase(getIt<ActivityHistoryRepository>()),
+  );
+  getIt.registerLazySingleton<GetTransactionDetailUseCase>(
+    () => GetTransactionDetailUseCase(getIt<ActivityHistoryRepository>()),
+  );
+  getIt.registerLazySingleton<GetMonthlyStatementUseCase>(
+    () => GetMonthlyStatementUseCase(getIt<ActivityHistoryRepository>()),
+  );
+  getIt.registerLazySingleton<ExportMonthlyStatementUseCase>(
+    () => ExportMonthlyStatementUseCase(getIt<ActivityHistoryRepository>()),
+  );
+  getIt.registerFactory<ActivityHistoryBloc>(
+    () => ActivityHistoryBloc(
+      getActivityHistoryUseCase: getIt<GetActivityHistoryUseCase>(),
+      getTransactionDetailUseCase: getIt<GetTransactionDetailUseCase>(),
+      exportMonthlyStatementUseCase: getIt<ExportMonthlyStatementUseCase>(),
+    ),
+  );
+
+  // Promotional Advertisements Popup Feature
+  getIt.registerLazySingleton<AdKeyValueStore>(
+    () => SecureAdKeyValueStore(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<AdvertisementLocalDataSource>(
+    () => AdvertisementLocalDataSourceImpl(getIt<AdKeyValueStore>()),
+  );
+  getIt.registerLazySingleton<AdvertisementRemoteDataSource>(
+    () => AdvertisementRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<AdvertisementRepository>(
+    () => AdvertisementRepositoryImpl(
+      remoteDataSource: getIt<AdvertisementRemoteDataSource>(),
+      localDataSource: getIt<AdvertisementLocalDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<GetEligibleAdvertisementUseCase>(
+    () => GetEligibleAdvertisementUseCase(getIt<AdvertisementRepository>()),
+  );
+  getIt.registerLazySingleton<TrackAdvertisementAnalyticsUseCase>(
+    () => TrackAdvertisementAnalyticsUseCase(getIt<AdvertisementRepository>()),
+  );
+  getIt.registerLazySingleton<ClearAdvertisementSessionUseCase>(
+    () => ClearAdvertisementSessionUseCase(getIt<AdvertisementRepository>()),
+  );
+  getIt.registerLazySingleton<AdvertisementBloc>(
+    () => AdvertisementBloc(
+      getEligibleAdvertisementUseCase: getIt<GetEligibleAdvertisementUseCase>(),
+      trackAdvertisementAnalyticsUseCase:
+          getIt<TrackAdvertisementAnalyticsUseCase>(),
+      clearAdvertisementSessionUseCase:
+          getIt<ClearAdvertisementSessionUseCase>(),
+    ),
+  );
+
+  // Notifications Center Feature
+  getIt.registerLazySingleton<NotificationKeyValueStore>(
+    () => SecureNotificationKeyValueStore(getIt<FlutterSecureStorage>()),
+  );
+  getIt.registerLazySingleton<NotificationLocalDataSource>(
+    () => NotificationLocalDataSourceImpl(getIt<NotificationKeyValueStore>()),
+  );
+  getIt.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(
+      remoteDataSource: getIt<NotificationRemoteDataSource>(),
+      localDataSource: getIt<NotificationLocalDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<GetNotificationsUseCase>(
+    () => GetNotificationsUseCase(getIt<NotificationRepository>()),
+  );
+  getIt.registerLazySingleton<MarkNotificationReadUseCase>(
+    () => MarkNotificationReadUseCase(getIt<NotificationRepository>()),
+  );
+  getIt.registerLazySingleton<MarkAllNotificationsReadUseCase>(
+    () => MarkAllNotificationsReadUseCase(getIt<NotificationRepository>()),
+  );
+  getIt.registerLazySingleton<GetUnreadNotificationCountUseCase>(
+    () => GetUnreadNotificationCountUseCase(getIt<NotificationRepository>()),
+  );
+  getIt.registerLazySingleton<WatchNotificationsRealtimeUseCase>(
+    () => WatchNotificationsRealtimeUseCase(getIt<NotificationRepository>()),
+  );
+  getIt.registerLazySingleton<NotificationBloc>(
+    () => NotificationBloc(
+      getNotificationsUseCase: getIt<GetNotificationsUseCase>(),
+      markNotificationReadUseCase: getIt<MarkNotificationReadUseCase>(),
+      markAllNotificationsReadUseCase:
+          getIt<MarkAllNotificationsReadUseCase>(),
+      getUnreadNotificationCountUseCase:
+          getIt<GetUnreadNotificationCountUseCase>(),
+      watchNotificationsRealtimeUseCase:
+          getIt<WatchNotificationsRealtimeUseCase>(),
     ),
   );
 

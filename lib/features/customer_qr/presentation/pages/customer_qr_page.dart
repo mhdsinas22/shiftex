@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shiftex/core/constants/app_colors.dart';
 import 'package:shiftex/core/extensions/context_extensions.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
 import 'package:shiftex/core/utils/responsive_layout.dart';
-import 'package:shiftex/core/widgets/shiiftex_info_bottom_sheet.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_event.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
@@ -16,6 +16,7 @@ import 'package:shiftex/features/customer_qr/presentation/widgets/customer_qr_ca
 import 'package:shiftex/features/customer_qr/presentation/widgets/earning_steps_card.dart';
 import 'package:shiftex/features/home/presentation/bloc/home_bloc.dart';
 import 'package:shiftex/features/home/presentation/widgets/customer_profile_sheet.dart';
+import 'package:shiftex/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:shiftex/injection_container.dart';
 
 /// Displays the authenticated customer's personal accrual-only QR pass and
@@ -111,12 +112,7 @@ class _CustomerQrPageState extends State<CustomerQrPage>
   }
 
   void _openNotifications() {
-    ShiiftexInfoBottomSheet.show(
-      context,
-      title: 'Notifications',
-      message:
-          'You are all caught up! Point credits and merchant scan confirmations will appear in your Recent Rewards activity.',
-    );
+    showNotificationsBottomSheet(context);
   }
 
   void _openProfileSheet(CustomerQrState qrState) {
@@ -136,7 +132,7 @@ class _CustomerQrPageState extends State<CustomerQrPage>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.white,
       builder: (sheetContext) {
         return CustomerProfileSheet(
           dashboard: homeBloc?.state.dashboard,
@@ -156,12 +152,12 @@ class _CustomerQrPageState extends State<CustomerQrPage>
   Widget build(BuildContext context) {
     final responsive = ResponsiveLayout.of(context);
     final horizontalPadding = responsive.sheetHorizontalPadding;
-
     return BlocProvider.value(
       value: _bloc,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: SafeArea(
+          bottom: false,
           child: BlocConsumer<CustomerQrBloc, CustomerQrState>(
             listenWhen: (previous, current) =>
                 previous.feedbackSequence != current.feedbackSequence,
@@ -172,10 +168,16 @@ class _CustomerQrPageState extends State<CustomerQrPage>
               _lastFeedbackSequence = state.feedbackSequence;
 
               if (state.errorMessage != null && state.hasData) {
-                context.showFeedbackSnackBar(state.errorMessage!, isError: true);
+                context.showFeedbackSnackBar(
+                  state.errorMessage!,
+                  isError: true,
+                );
                 _bloc.add(const CustomerQrFeedbackCleared());
               } else if (state.infoMessage != null) {
-                context.showFeedbackSnackBar(state.infoMessage!, isError: false);
+                context.showFeedbackSnackBar(
+                  state.infoMessage!,
+                  isError: false,
+                );
                 _bloc.add(const CustomerQrFeedbackCleared());
               }
             },
@@ -198,7 +200,7 @@ class _CustomerQrPageState extends State<CustomerQrPage>
                           horizontalPadding,
                           16,
                           horizontalPadding,
-                          24,
+                          120,
                         ),
                         child: Center(
                           child: ConstrainedBox(
@@ -216,15 +218,13 @@ class _CustomerQrPageState extends State<CustomerQrPage>
                                       CustomerQrStatus.refreshing,
                                   isExpired: state.isExpired,
                                   errorMessage: state.errorMessage,
-                                  onCopyId:
-                                      () => _bloc.add(
-                                        const CustomerIdCopyRequested(),
-                                      ),
+                                  onCopyId: () => _bloc.add(
+                                    const CustomerIdCopyRequested(),
+                                  ),
                                   onDone: _handleDone,
-                                  onRefresh:
-                                      () => _bloc.add(
-                                        const CustomerQrRefreshRequested(),
-                                      ),
+                                  onRefresh: () => _bloc.add(
+                                    const CustomerQrRefreshRequested(),
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 const EarningStepsCard(),

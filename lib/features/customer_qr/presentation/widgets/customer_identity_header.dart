@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shiftex/core/constants/app_colors.dart';
+
 import 'package:shiftex/features/home/presentation/widgets/home_header_bar.dart';
 
 /// Top navigation header for the Personal QR Display page reusing SHIIFTEX's
@@ -19,7 +19,8 @@ class CustomerIdentityHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF9FAFB),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      color: const Color(0xFFF5F7FA),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -28,7 +29,14 @@ class CustomerIdentityHeader extends StatelessWidget {
             onNotificationTap: onNotificationTap,
             onProfileTap: onProfileTap,
           ),
-          const Divider(height: 1, thickness: 1, color: AppColors.divider),
+          // Padding(
+          //   padding: const EdgeInsets.all(8.0),
+          //   child: const Divider(
+          //     height: 1,
+          //     thickness: 1,
+          //     color: AppColors.divider,
+          //   ),
+          // ),
         ],
       ),
     );

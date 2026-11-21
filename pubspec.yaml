@@ -43,6 +43,10 @@ dependencies:
   dartz: ^0.10.1
   flutter_secure_storage: ^9.2.4
   qr_flutter: ^4.1.0
+  pdf: ^3.12.0
+  path_provider: ^2.1.6
+  share_plus: ^12.0.2
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +54,18 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/png/ChatGPT Image Nov 21, 2026, 02_28_04 PM.png"
+  remove_alpha_ios: true
+
+dependency_overrides:
+  # image 4.11.0 calls ZLibDecoder.decodeLazy without bumping its archive >=4.1.0 bound,
+  # while pdf 3.12.0 requires archive <4.1.0. Keep image within pdf's supported >=4.1.0 range.
+  image: 4.8.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

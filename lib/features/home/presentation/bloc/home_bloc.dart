@@ -13,7 +13,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   final String _sessionId;
   final Set<String> _celebratedCycleDates = <String>{};
-  final Set<String> _trackedImpressionIds = <String>{};
 
   HomeBloc({
     required GetHomeDashboardUseCase getHomeDashboardUseCase,
@@ -109,20 +108,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         if (shouldCelebrate) {
           _celebratedCycleDates.add(cycleDate);
-        }
-
-        // Record impression for the first displayed advertisement if not yet tracked
-        for (final ad in dashboard.advertisements.take(1)) {
-          if (ad.id.isNotEmpty && !_trackedImpressionIds.contains(ad.id)) {
-            _trackedImpressionIds.add(ad.id);
-            _trackAdvertisementEventUseCase(
-              TrackAdvertisementEventParams(
-                advertisementId: ad.id,
-                eventType: 'impression',
-                sessionId: _sessionId,
-              ),
-            );
-          }
         }
 
         emit(

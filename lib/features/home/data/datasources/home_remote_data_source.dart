@@ -51,42 +51,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
     final dashboardJson = Map<String, dynamic>.from(dashboardResponse);
 
-    // Fetch active, published, date-valid, customer-eligible advertisements
-    List<AdvertisementCampaignModel> activeAds = const [];
-    try {
-      final adsResponse = await _supabaseClient.rpc(
-        'get_active_customer_advertisements',
-        params: {
-          'p_customer_id': user.id,
-          'p_session_id': sessionId,
-        },
-      );
-
-      if (adsResponse is List) {
-        final now = DateTime.now().toUtc();
-        activeAds =
-            adsResponse
-                .whereType<Map>()
-                .map(
-                  (item) => AdvertisementCampaignModel.fromJson(
-                    Map<String, dynamic>.from(item),
-                  ),
-                )
-                .where(
-                  (ad) =>
-                      !ad.startAt.isAfter(now) && !ad.endAt.isBefore(now),
-                )
-                .toList();
-      }
-    } catch (_) {
-      // Non-fatal if advertisements table is empty or unreachable
-      activeAds = const [];
-    }
-
-    return HomeDashboardModel.fromJson(
-      dashboardJson,
-      advertisements: activeAds,
-    );
+    return HomeDashboardModel.fromJson(dashboardJson);
   }
 
   @override

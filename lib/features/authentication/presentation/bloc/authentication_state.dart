@@ -17,10 +17,7 @@ class AuthenticationLoading extends AuthenticationState {
   final String? activeEmail;
   final CustomerProfileEntity? currentProfile;
 
-  const AuthenticationLoading({
-    this.activeEmail,
-    this.currentProfile,
-  });
+  const AuthenticationLoading({this.activeEmail, this.currentProfile});
 
   @override
   List<Object?> get props => [activeEmail, currentProfile];
@@ -83,10 +80,7 @@ class PendingApproval extends AuthenticationState {
   final CustomerProfileEntity profile;
   final String? statusMessage;
 
-  const PendingApproval(
-    this.profile, {
-    this.statusMessage,
-  });
+  const PendingApproval(this.profile, {this.statusMessage});
 
   @override
   List<Object?> get props => [profile, statusMessage];
@@ -96,10 +90,7 @@ class AccountRejected extends AuthenticationState {
   final CustomerProfileEntity profile;
   final String? reason;
 
-  const AccountRejected({
-    required this.profile,
-    this.reason,
-  });
+  const AccountRejected({required this.profile, this.reason});
 
   @override
   List<Object?> get props => [profile, reason];
@@ -156,11 +147,7 @@ class AuthenticationFailure extends AuthenticationState {
   final String? email;
   final CustomerProfileEntity? previousProfile;
 
-  const AuthenticationFailure(
-    this.failure, {
-    this.email,
-    this.previousProfile,
-  });
+  const AuthenticationFailure(this.failure, {this.email, this.previousProfile});
 
   @override
   List<Object?> get props => [failure, email, previousProfile];

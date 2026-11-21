@@ -188,8 +188,20 @@ class ErrorMapper {
       return const SessionExpiredFailure();
     }
 
+    if (error.code == 'PGRST202' ||
+        error.code == '42P01' ||
+        error.code == '42883') {
+      return const ServerFailure(
+        'Backend service configuration is missing or not updated yet. Please apply the latest database migration and try again.',
+      );
+    }
+
+    if (msg.contains('unauthenticated')) {
+      return const SessionExpiredFailure();
+    }
+
     return const ServerFailure(
-      'Unable to process your account profile right now. Please try again.',
+      'Unable to process your request right now. Please try again.',
     );
   }
 }
