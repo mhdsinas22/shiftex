@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:shiftex/core/errors/exceptions.dart';
 import 'package:shiftex/features/activity_history/domain/entities/monthly_statement_entity.dart';
+import 'package:shiftex/features/home/presentation/widgets/home_formatters.dart';
 
 typedef StatementShareCallback =
     Future<void> Function(
@@ -142,13 +143,7 @@ class StatementExporterService {
       'Opening Available Balance (pts),${statement.openingAvailableBalance}',
     );
     buffer.writeln('Total Earned (pts),${statement.totalEarnedPoints}');
-    buffer.writeln(
-      'Total Earned Historical INR,${statement.totalEarnedInr.toStringAsFixed(2)}',
-    );
     buffer.writeln('Total Redeemed (pts),${statement.totalRedeemedPoints}');
-    buffer.writeln(
-      'Total Redeemed Historical INR,${statement.totalRedeemedInr.toStringAsFixed(2)}',
-    );
     buffer.writeln(
       'Locked Allocations (pts),${statement.lockedAllocatedPoints}',
     );
@@ -160,7 +155,7 @@ class StatementExporterService {
     );
     buffer.writeln();
     buffer.writeln(
-      'Transaction Date,Transaction ID,Title,Description,Points Credited,Points Deducted,Historical INR Equivalent,Historical Rate,Status',
+      'Transaction Date,Transaction ID,Title,Description,Points Credited,Points Deducted,Status',
     );
 
     for (final item in statement.items) {
@@ -173,12 +168,10 @@ class StatementExporterService {
         [
           _csvCell(dateStr),
           _csvCell(item.transactionId),
-          _csvCell(item.title),
-          _csvCell(item.description),
+          _csvCell(HomeFormatters.stripCurrencyCopy(item.title)),
+          _csvCell(HomeFormatters.stripCurrencyCopy(item.description)),
           '${item.pointsCredited}',
           '${item.pointsDeducted}',
-          item.historicalInr.toStringAsFixed(2),
-          item.historicalRate.toStringAsFixed(4),
           _csvCell(item.status),
         ].join(','),
       );
@@ -273,11 +266,11 @@ class StatementExporterService {
                         ),
                         _pdfMetric(
                           'Total Earned',
-                          '+${statement.totalEarnedPoints} pts (Rs ${statement.totalEarnedInr.toStringAsFixed(2)})',
+                          '+${statement.totalEarnedPoints} pts',
                         ),
                         _pdfMetric(
                           'Total Redeemed',
-                          '-${statement.totalRedeemedPoints} pts (Rs ${statement.totalRedeemedInr.toStringAsFixed(2)})',
+                          '-${statement.totalRedeemedPoints} pts',
                         ),
                       ],
                     ),
@@ -342,7 +335,6 @@ class StatementExporterService {
                     'Description',
                     'Credit',
                     'Debit',
-                    'INR',
                     'Status',
                   ],
                   data:
@@ -364,7 +356,6 @@ class StatementExporterService {
                           item.pointsDeducted > 0
                               ? '-${item.pointsDeducted}'
                               : '-',
-                          'Rs ${item.historicalInr.toStringAsFixed(2)}',
                           item.status,
                         ];
                       }).toList(),
@@ -404,8 +395,7 @@ class StatementExporterService {
   }
 
   String _pdfSafeText(String raw) {
-    return raw
-        .replaceAll('₹', 'Rs ')
+    return HomeFormatters.stripCurrencyCopy(raw)
         .replaceAll('•', '-')
         .replaceAll('×', 'x')
         .replaceAll('≈', '~');

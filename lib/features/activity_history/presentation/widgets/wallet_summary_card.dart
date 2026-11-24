@@ -17,13 +17,10 @@ class WalletSummaryCard extends StatelessWidget {
     final availablePts = HomeFormatters.formatPoints(
       summary.netAvailablePoints,
     );
-    final availableInr = HomeFormatters.formatInr(summary.netAvailableInr);
     final earnedPts = HomeFormatters.formatPoints(summary.lifetimeEarnedPoints);
-    final earnedInr = HomeFormatters.formatInr(summary.lifetimeEarnedInr);
     final redeemedPts = HomeFormatters.formatPoints(
       summary.totalRedeemedPoints,
     );
-    final redeemedInr = HomeFormatters.formatInr(summary.totalRedeemedInr);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,9 +89,9 @@ class WalletSummaryCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    '${summary.currentPointsPerRupee} pts = ₹1.00',
-                    style: const TextStyle(
+                  const Text(
+                    'Points Wallet',
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textOnBlueMuted,
@@ -103,30 +100,15 @@ class WalletSummaryCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Text(
-                    '$availablePts pts',
-                    style: TextStyle(
-                      fontSize: responsive.isSmallWidth ? 28 : 34,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.white,
-                      letterSpacing: -0.8,
-                      height: 1.08,
-                    ),
-                  ),
-                  Text(
-                    '≈ $availableInr',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textOnBlueMuted,
-                    ),
-                  ),
-                ],
+              Text(
+                '$availablePts pts',
+                style: TextStyle(
+                  fontSize: responsive.isSmallWidth ? 28 : 34,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.white,
+                  letterSpacing: -0.8,
+                  height: 1.08,
+                ),
               ),
               if (summary.lockedPoints > 0 || summary.reservedPoints > 0) ...[
                 const SizedBox(height: 10),
@@ -138,7 +120,7 @@ class WalletSummaryCard extends StatelessWidget {
                       _buildStatusChip(
                         icon: Icons.lock_clock_outlined,
                         label:
-                            '${HomeFormatters.formatPoints(summary.lockedPoints)} pts Locked (${HomeFormatters.formatInr(summary.lockedInr)})',
+                            '${HomeFormatters.formatPoints(summary.lockedPoints)} pts Locked',
                       ),
                     if (summary.reservedPoints > 0)
                       _buildStatusChip(
@@ -156,7 +138,6 @@ class WalletSummaryCard extends StatelessWidget {
                     child: _buildStatTile(
                       label: 'Lifetime Earned',
                       primaryValue: '$earnedPts pts',
-                      secondaryValue: '≈ $earnedInr',
                       accentColor: const Color(0xFF8EF63C),
                     ),
                   ),
@@ -165,7 +146,6 @@ class WalletSummaryCard extends StatelessWidget {
                     child: _buildStatTile(
                       label: 'Total Redeemed',
                       primaryValue: '$redeemedPts pts',
-                      secondaryValue: '≈ $redeemedInr',
                       accentColor: AppColors.white,
                     ),
                   ),
@@ -215,7 +195,6 @@ class WalletSummaryCard extends StatelessWidget {
   Widget _buildStatTile({
     required String label,
     required String primaryValue,
-    required String secondaryValue,
     required Color accentColor,
   }) {
     return Container(
@@ -249,17 +228,6 @@ class WalletSummaryCard extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 color: accentColor,
               ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            secondaryValue,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textOnBlueMuted,
             ),
           ),
         ],

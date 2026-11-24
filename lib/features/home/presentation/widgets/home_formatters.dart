@@ -33,6 +33,47 @@ class HomeFormatters {
     return '$prefix${amount.abs().toStringAsFixed(decimals)}';
   }
 
+  static final RegExp _parentheticalCurrencyRegExp = RegExp(
+    r'\s*\(\s*(?:≈|~)?\s*(?:₹|Rs\.?|INR)\s*[\d,]+(?:\.\d+)?\s*\)',
+    caseSensitive: false,
+  );
+  static final RegExp _forCurrencyBeforeParenRegExp = RegExp(
+    r'\s+for\s+(?:₹|Rs\.?|INR)\s*[\d,]+(?:\.\d+)?(?=\s*\()',
+    caseSensitive: false,
+  );
+  static final RegExp _forCurrencyAmountRegExp = RegExp(
+    r'\s+for\s+(?:₹|Rs\.?|INR)\s*[\d,]+(?:\.\d+)?\s+',
+    caseSensitive: false,
+  );
+  static final RegExp _aboveCurrencyPhraseRegExp = RegExp(
+    r'\s*(?:on bills\s+|on orders\s+|on purchases\s+)?above\s+(?:₹|Rs\.?|INR)\s*[\d,]+(?:\.\d+)?',
+    caseSensitive: false,
+  );
+  static final RegExp _inlineCurrencyRegExp = RegExp(
+    r'\s*(?:₹|Rs\.?|INR)\s*[\d,]+(?:\.\d+)?(?:/pt)?',
+    caseSensitive: false,
+  );
+  static final RegExp _multiSpaceRegExp = RegExp(r'\s{2,}');
+
+  /// Removes currency amounts, conversions, and symbols so UI text remains
+  /// strictly points-focused even when parsing legacy backend strings.
+  static String stripCurrencyCopy(String raw) {
+    if (raw.isEmpty) return raw;
+    var sanitized = raw
+        .replaceAll(_parentheticalCurrencyRegExp, '')
+        .replaceAll(_forCurrencyBeforeParenRegExp, '')
+        .replaceAll(_forCurrencyAmountRegExp, ' for ')
+        .replaceAll(_aboveCurrencyPhraseRegExp, '')
+        .replaceAll(_inlineCurrencyRegExp, '');
+    sanitized = sanitized
+        .replaceAll('₹', '')
+        .replaceAll(_multiSpaceRegExp, ' ')
+        .replaceAll(' .', '.')
+        .replaceAll(' ,', ',')
+        .trim();
+    return sanitized;
+  }
+
   static String formatCountdown(Duration duration) {
     if (duration.inSeconds <= 0) return 'Ready to unlock';
     final days = duration.inDays;

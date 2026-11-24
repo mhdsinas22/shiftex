@@ -20,7 +20,6 @@ class ClaimAvailableBalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final canClaimFull = availablePoints > 0 && onClaimFullTap != null;
     final formattedPts = HomeFormatters.formatPoints(availablePoints);
-    final formattedInr = HomeFormatters.formatInr(availableInr);
 
     return Container(
       width: double.infinity,
@@ -59,26 +58,12 @@ class ClaimAvailableBalanceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$formattedPts pts',
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' ($formattedInr)',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                Text(
+                  '$formattedPts pts',
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

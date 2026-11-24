@@ -19,7 +19,6 @@ class LockedPointsCard extends StatelessWidget {
     final responsive = ResponsiveLayout.of(context);
     final now = DateTime.now().toUtc();
     final lockedPts = HomeFormatters.formatPoints(wallet.lockedPoints);
-    final lockedInr = HomeFormatters.formatInr(wallet.lockedInr);
 
     final hasLocked = wallet.lockedPoints > 0 && nextAllocation != null;
     final countdownStr =
@@ -78,39 +77,14 @@ class LockedPointsCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        Text(
-                          '$lockedPts pts locked',
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF7C370B),
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF4DD9A),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '≈ $lockedInr',
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF7C370B),
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      '$lockedPts pts locked',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF7C370B),
+                        letterSpacing: -0.2,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(

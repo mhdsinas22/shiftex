@@ -14,4 +14,5 @@ class RoutesNames {
   static const String claimRewards = '/claim-rewards';
   static const String activityHistory = '/activity-history';
   static const String notifications = '/notifications';
+  static const String changePassword = '/change-password';
 }

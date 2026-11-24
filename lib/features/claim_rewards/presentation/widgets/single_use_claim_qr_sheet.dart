@@ -131,7 +131,6 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet>
                 state.remainingSeconds <= 0 && claim.isPending && claim.isExpiredAt(DateTime.now().toUtc()));
 
         final pointsText = HomeFormatters.formatPoints(claim.points);
-        final discountText = HomeFormatters.formatInr(claim.discountAmount);
         final isChecking = state.status == ClaimRewardsStatus.checkingStatus;
         final qrSize = (screenWidth * 0.44).clamp(142.0, 182.0);
 
@@ -243,7 +242,7 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$pointsText pts ≈ $discountText Off Bill',
+                              '$pointsText pts Instant Claim',
                               style: const TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
@@ -479,7 +478,6 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet>
     ClaimRewardsState state,
   ) {
     final ptsText = HomeFormatters.formatPoints(claim.points);
-    final discText = HomeFormatters.formatInr(claim.discountAmount);
     final updatedBalance = HomeFormatters.formatPoints(state.availablePoints);
 
     return Container(
@@ -520,7 +518,7 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet>
           ),
           const SizedBox(height: 6),
           Text(
-            '$ptsText pts ($discText discount) deducted at checkout.',
+            '$ptsText pts deducted at checkout.',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,

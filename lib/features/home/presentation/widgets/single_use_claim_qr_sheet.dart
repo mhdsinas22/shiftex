@@ -52,10 +52,7 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final samplePoints = 100;
-    final sampleInr = HomeFormatters.formatInr(
-      samplePoints * widget.pointsToInrRate,
-    );
+    const samplePoints = 100;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -161,7 +158,7 @@ class _SingleUseClaimQrSheetState extends State<SingleUseClaimQrSheet> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '$samplePoints pts = $sampleInr Off Bill',
+                          '$samplePoints pts Instant Claim',
                           style: const TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w800,

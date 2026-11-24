@@ -19,11 +19,8 @@ class AvailableBalanceCard extends StatelessWidget {
     final responsive = ResponsiveLayout.of(context);
     final pointsFontSize = responsive.isSmallWidth ? 32.0 : 38.0;
     final formattedPoints = HomeFormatters.formatPoints(wallet.availablePoints);
-    final formattedInr = HomeFormatters.formatInr(wallet.availableInr);
-    final todayInr = wallet.earnedTodayInr;
-    final todayBadgeText = todayInr > 0
-        ? '↑ +₹${todayInr.toStringAsFixed(todayInr.truncateToDouble() == todayInr ? 0 : 2)} today'
-        : '↑ +${wallet.pointsEarnedToday} pts today';
+    final todayBadgeText =
+        '↑ +${HomeFormatters.formatPoints(wallet.pointsEarnedToday)} pts today';
 
     return Container(
       width: double.infinity,
@@ -85,9 +82,9 @@ class AvailableBalanceCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(
-                '${wallet.pointsPerOneInr} pts = ₹1.00',
-                style: const TextStyle(
+              const Text(
+                'Instant Wallet',
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.white,
@@ -121,38 +118,23 @@ class AvailableBalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              Text(
-                '≈ $formattedInr',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.white,
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 9,
+              vertical: 3.5,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF82F03A),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              todayBadgeText,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0B2405),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 3.5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF82F03A),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  todayBadgeText,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B2405),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 20),
           Material(

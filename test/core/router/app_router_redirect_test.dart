@@ -60,6 +60,13 @@ void main() {
       expect(
         AppRouter.evaluateAuthRedirect(
           authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.changePassword,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
           matchedLocation: RoutesNames.splash,
         ),
         isNull,
@@ -101,6 +108,13 @@ void main() {
           AppRouter.evaluateAuthRedirect(
             authState: const Unauthenticated(),
             matchedLocation: RoutesNames.notifications,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.changePassword,
           ),
           RoutesNames.login,
         );
@@ -192,6 +206,13 @@ void main() {
           expect(
             AppRouter.evaluateAuthRedirect(
               authState: restrictedState,
+              matchedLocation: RoutesNames.changePassword,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
               matchedLocation: RoutesNames.login,
             ),
             RoutesNames.pendingApproval,
@@ -251,6 +272,28 @@ void main() {
         );
         expect(
           AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.changePassword,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.forgotPassword,
+            queryParameters: const {'from': 'change-password'},
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.forgotPassword,
+          ),
+          RoutesNames.home,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
             authState: AuthenticationLoading(
               currentProfile: buildProfile(AccountApprovalStatus.approved),
             ),
@@ -264,6 +307,24 @@ void main() {
               currentProfile: buildProfile(AccountApprovalStatus.pending),
             ),
             matchedLocation: RoutesNames.customerQr,
+          ),
+          RoutesNames.splash,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: AuthenticationLoading(
+              currentProfile: buildProfile(AccountApprovalStatus.approved),
+            ),
+            matchedLocation: RoutesNames.changePassword,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: AuthenticationLoading(
+              currentProfile: buildProfile(AccountApprovalStatus.pending),
+            ),
+            matchedLocation: RoutesNames.changePassword,
           ),
           RoutesNames.splash,
         );

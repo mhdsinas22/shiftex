@@ -20,20 +20,6 @@ class ClaimAmountPresets extends StatelessWidget {
     required this.onPresetSelected,
   });
 
-  String _formatRateBadge() {
-    final ptsPerRupee =
-        pointsToInrRate > 0 ? (1.0 / pointsToInrRate).round() : 10;
-    return '$ptsPerRupee pts = ₹1.00';
-  }
-
-  String _formatCompactInr(double value) {
-    final rounded = ((value * 100).roundToDouble()) / 100.0;
-    if (rounded.truncateToDouble() == rounded) {
-      return '₹${rounded.toInt()}';
-    }
-    return HomeFormatters.formatInr(rounded);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -54,13 +40,13 @@ class ClaimAmountPresets extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Flexible(
+            const Flexible(
               child: Text(
-                _formatRateBadge(),
+                'Instant Points',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.end,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textSecondary,
@@ -90,9 +76,7 @@ class ClaimAmountPresets extends StatelessWidget {
   Widget _buildPresetTile(BuildContext context, {required int points}) {
     final isSelected = selectedPoints == points;
     final isEnabled = availablePoints >= points;
-    final discountInr = ((points * pointsToInrRate) * 100).roundToDouble() / 100.0;
     final ptsLabel = '${HomeFormatters.formatPoints(points)} pts';
-    final inrLabel = _formatCompactInr(discountInr);
 
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.45,
@@ -106,7 +90,7 @@ class ClaimAmountPresets extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           onTap: isEnabled ? () => onPresetSelected(points) : null,
           child: Container(
-            constraints: const BoxConstraints(minHeight: 64),
+            constraints: const BoxConstraints(minHeight: 56),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -120,37 +104,18 @@ class ClaimAmountPresets extends StatelessWidget {
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      ptsLabel,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color:
-                            isSelected
-                                ? AppColors.white
-                                : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      inrLabel,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
-                        color:
-                            isSelected
-                                ? AppColors.white.withValues(alpha: 0.78)
-                                : AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  ptsLabel,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color:
+                        isSelected
+                            ? AppColors.white
+                            : AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),

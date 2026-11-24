@@ -26,7 +26,10 @@ class TransactionHistoryCard extends StatelessWidget {
     final visual = _resolveVisuals(transaction);
     final timeStr = _formatLocalTime(transaction.createdAt);
     final pointsText = _formatSignedPoints(transaction);
-    final inrText = _formatHistoricalInr(transaction);
+    final cleanTitle = HomeFormatters.stripCurrencyCopy(transaction.title);
+    final cleanDescription = HomeFormatters.stripCurrencyCopy(
+      transaction.description,
+    );
 
     return Material(
       color: AppColors.white,
@@ -78,7 +81,7 @@ class TransactionHistoryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          transaction.title,
+                          cleanTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -87,10 +90,10 @@ class TransactionHistoryCard extends StatelessWidget {
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        if (transaction.description.isNotEmpty) ...[
+                        if (cleanDescription.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(
-                            transaction.description,
+                            cleanDescription,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -136,15 +139,6 @@ class TransactionHistoryCard extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: visual.pointsColor,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        inrText,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
                         ),
                       ),
                       if (transaction.isExpandable) ...[
@@ -335,7 +329,7 @@ class TransactionHistoryCard extends StatelessWidget {
               'Timestamp',
               HomeFormatters.formatUnlockDateTime(tx.createdAt),
             ),
-            MapEntry('Historical Value', _formatHistoricalInr(tx)),
+            MapEntry('Points Amount', _formatSignedPoints(tx)),
             MapEntry('Status', tx.status),
           ],
         );
@@ -410,16 +404,6 @@ class TransactionHistoryCard extends StatelessWidget {
     }
     final prefix = tx.pointsDelta > 0 ? '+' : '';
     return '$prefix${HomeFormatters.formatPoints(tx.pointsDelta)} pts';
-  }
-
-  String _formatHistoricalInr(ActivityTransactionEntity tx) {
-    if (tx.isFailedOrCancelledClaim) {
-      return '${HomeFormatters.formatInr(tx.historicalInrValue)} void';
-    }
-    if (tx.isDebit) {
-      return '-${HomeFormatters.formatInr(tx.historicalInrValue)}';
-    }
-    return HomeFormatters.formatInr(tx.historicalInrValue);
   }
 
   String _formatLocalTime(DateTime utcDate) {

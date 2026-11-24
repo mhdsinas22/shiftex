@@ -9,6 +9,7 @@ class CustomerProfileSheet extends StatelessWidget {
   final String fallbackEmail;
   final String fallbackMobile;
   final VoidCallback onSignOut;
+  final VoidCallback? onChangePassword;
 
   const CustomerProfileSheet({
     super.key,
@@ -17,6 +18,7 @@ class CustomerProfileSheet extends StatelessWidget {
     required this.fallbackEmail,
     required this.fallbackMobile,
     required this.onSignOut,
+    this.onChangePassword,
   });
 
   @override
@@ -141,6 +143,88 @@ class CustomerProfileSheet extends StatelessWidget {
                     ],
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Security',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Material(
+              color: const Color(0xFFF8FAFC),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: AppColors.divider),
+              ),
+              child: InkWell(
+                key: const ValueKey('profile_change_password_tile'),
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onChangePassword?.call();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAF2FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.lock_reset_rounded,
+                          color: AppColors.primaryBlue,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Password',
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Update your password to keep your account safe',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textSecondary,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),

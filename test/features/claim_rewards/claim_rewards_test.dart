@@ -661,29 +661,30 @@ void main() {
         expect(
           find.descendant(
             of: find.byType(ChooseClaimAmountSheet),
-            matching: find.text('10 pts = ₹1.00'),
+            matching: find.text('Instant Points'),
           ),
           findsOneWidget,
         );
         expect(find.text('Claim Full'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
 
-        // 2. Tap 500 pts preset -> summary updates cleanly
+        // 2. Tap 500 pts preset -> summary updates cleanly with points only
         await tester.tap(find.text('500 pts'));
         await _pumpFrames(tester);
-        expect(find.text('₹50.00 Off Bill'), findsOneWidget);
-        expect(find.textContaining('1,950 pts (₹195.00)'), findsOneWidget);
+        expect(find.text('Instant Points Claim'), findsOneWidget);
+        expect(find.text('1,950 pts'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
 
         // 2b. Tap Claim Full -> fills full instant balance (locked points excluded)
         await tester.tap(find.text('Claim Full'));
         await _pumpFrames(tester);
-        expect(find.text('₹245.00 Off Bill'), findsOneWidget);
-        expect(find.textContaining('0 pts (₹0.00)'), findsOneWidget);
+        expect(find.text('0 pts'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
 
         // 2c. Enter custom valid point amount -> summary updates dynamically
         await tester.enterText(find.byType(TextField), '500');
         await _pumpFrames(tester);
-        expect(find.text('₹50.00 Off Bill'), findsOneWidget);
-        expect(find.textContaining('1,950 pts (₹195.00)'), findsOneWidget);
+        expect(find.text('1,950 pts'), findsOneWidget);
 
         // 3. Tap Generate Claim QR -> transitions smoothly to Single-Use Claim QR sheet
         await tester.ensureVisible(find.text('Generate Claim QR'));
@@ -691,7 +692,8 @@ void main() {
         await _pumpFrames(tester);
 
         expect(find.text('Single-Use Claim QR'), findsOneWidget);
-        expect(find.text('500 pts ≈ ₹50.00 Off Bill'), findsOneWidget);
+        expect(find.text('500 pts Instant Claim'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
         expect(find.text('ACTIVE • SINGLE-USE'), findsOneWidget);
         expect(find.byType(QrImageView), findsOneWidget);
         expect(find.text('CLM-9942-X7B'), findsOneWidget);

@@ -152,7 +152,9 @@ class NotificationCampaignSheet extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             Text(
-              notification.campaignOfferDetails ?? notification.body,
+              HomeFormatters.stripCurrencyCopy(
+                notification.campaignOfferDetails ?? notification.body,
+              ),
               style: const TextStyle(
                 fontSize: 14.5,
                 height: 1.5,

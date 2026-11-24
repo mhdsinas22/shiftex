@@ -128,6 +128,7 @@ class _CustomerQrPageState extends State<CustomerQrPage>
 
     final fallbackName =
         qrState.qrData?.fullName ?? profile?.fullName ?? 'SHIIFTEX Member';
+    final router = GoRouter.maybeOf(context);
 
     showModalBottomSheet<void>(
       context: context,
@@ -139,6 +140,9 @@ class _CustomerQrPageState extends State<CustomerQrPage>
           fallbackFullName: fallbackName,
           fallbackEmail: profile?.email ?? '',
           fallbackMobile: profile?.mobileNumber ?? '',
+          onChangePassword: () {
+            router?.push(RoutesNames.changePassword);
+          },
           onSignOut: () {
             Navigator.of(sheetContext).pop();
             authBloc?.add(const LogoutRequested());

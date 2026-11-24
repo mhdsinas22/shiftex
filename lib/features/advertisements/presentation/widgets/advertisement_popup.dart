@@ -55,7 +55,9 @@ class AdvertisementPopup extends StatelessWidget {
     final cardPadding = isCompactWidth ? 14.0 : 16.0;
 
     final validImageUrl = advertisement.validatedImageUrl;
-    final descriptionText = advertisement.offerDetails.trim();
+    final descriptionText = HomeFormatters.stripCurrencyCopy(
+      advertisement.offerDetails.trim(),
+    );
     final hasCta = advertisement.hasConfiguredCta && onCtaTap != null;
     final showDetailsBox = descriptionText.isNotEmpty || hasCta;
     final validityText = _formatValidityWithRemaining(advertisement);

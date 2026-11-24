@@ -14,6 +14,7 @@ import 'package:shiftex/features/authentication/presentation/pages/reset_code_pa
 import 'package:shiftex/features/authentication/presentation/pages/set_new_password_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/verify_email_otp_page.dart';
 import 'package:shiftex/features/activity_history/presentation/pages/activity_history_page.dart';
+import 'package:shiftex/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:shiftex/features/claim_rewards/presentation/pages/claim_rewards_page.dart';
 import 'package:shiftex/features/customer_qr/presentation/pages/customer_qr_page.dart';
 import 'package:shiftex/features/home/presentation/pages/home_page.dart';
@@ -81,14 +82,24 @@ class AppRouter {
           path: RoutesNames.forgotPassword,
           builder: (context, state) {
             final email = state.uri.queryParameters['email'];
-            return ForgotPasswordPage(initialEmail: email);
+            final fromChangePassword =
+                state.uri.queryParameters['from'] == 'change-password';
+            return ForgotPasswordPage(
+              initialEmail: email,
+              fromChangePassword: fromChangePassword,
+            );
           },
         ),
         GoRoute(
           path: RoutesNames.resetCode,
           builder: (context, state) {
             final email = state.uri.queryParameters['email'] ?? '';
-            return ResetCodePage(email: email);
+            final fromChangePassword =
+                state.uri.queryParameters['from'] == 'change-password';
+            return ResetCodePage(
+              email: email,
+              fromChangePassword: fromChangePassword,
+            );
           },
         ),
         GoRoute(
@@ -144,23 +155,24 @@ class AppRouter {
             child: const NotificationsPage(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              final curved = CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-                reverseCurve: Curves.easeInCubic,
-              );
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.14),
-                  end: Offset.zero,
-                ).animate(curved),
-                child: FadeTransition(
-                  opacity: curved,
-                  child: child,
-                ),
-              );
-            },
+                  final curved = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                    reverseCurve: Curves.easeInCubic,
+                  );
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.14),
+                      end: Offset.zero,
+                    ).animate(curved),
+                    child: FadeTransition(opacity: curved, child: child),
+                  );
+                },
           ),
+        ),
+        GoRoute(
+          path: RoutesNames.changePassword,
+          builder: (context, state) => const ChangePasswordPage(),
         ),
       ],
     );
@@ -197,7 +209,8 @@ class AppRouter {
           matchedLocation == RoutesNames.customerQr ||
           matchedLocation == RoutesNames.claimRewards ||
           matchedLocation == RoutesNames.activityHistory ||
-          matchedLocation == RoutesNames.notifications) {
+          matchedLocation == RoutesNames.notifications ||
+          matchedLocation == RoutesNames.changePassword) {
         final profile = authState.currentProfile;
         if (profile == null || !profile.isApproved) {
           return RoutesNames.splash;
@@ -213,12 +226,17 @@ class AppRouter {
             ? null
             : RoutesNames.pendingApproval;
       }
+      final isForgotFromChangePassword =
+          matchedLocation == RoutesNames.forgotPassword &&
+          queryParameters['from'] == 'change-password';
       final isAllowedRoute =
           matchedLocation == RoutesNames.home ||
           matchedLocation == RoutesNames.customerQr ||
           matchedLocation == RoutesNames.claimRewards ||
           matchedLocation == RoutesNames.activityHistory ||
-          matchedLocation == RoutesNames.notifications;
+          matchedLocation == RoutesNames.notifications ||
+          matchedLocation == RoutesNames.changePassword ||
+          isForgotFromChangePassword;
       return isAllowedRoute ? null : RoutesNames.home;
     }
 

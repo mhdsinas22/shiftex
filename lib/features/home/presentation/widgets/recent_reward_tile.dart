@@ -32,11 +32,6 @@ class RecentRewardTile extends StatelessWidget {
     final isCredit = transaction.isCredit;
     final ptsStr =
         '${isCredit ? '+' : ''}${HomeFormatters.formatPoints(transaction.pointsDelta)} pts';
-    final inrVal = transaction.inrEquivalent(pointsToInrRate);
-    final inrStr =
-        isCredit
-            ? HomeFormatters.formatInr(inrVal)
-            : '-${HomeFormatters.formatInr(inrVal)}';
     final timeStr = HomeFormatters.formatRelativeTimestamp(
       transaction.createdAt,
     );
@@ -69,7 +64,7 @@ class RecentRewardTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.title,
+                  HomeFormatters.stripCurrencyCopy(transaction.title),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -93,30 +88,16 @@ class RecentRewardTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                ptsStr,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color:
-                      isCredit
-                          ? const Color(0xFF15803D)
-                          : AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                inrStr,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          Text(
+            ptsStr,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color:
+                  isCredit
+                      ? const Color(0xFF15803D)
+                      : AppColors.textPrimary,
+            ),
           ),
         ],
       ),

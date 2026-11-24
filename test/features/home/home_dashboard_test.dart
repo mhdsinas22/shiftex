@@ -37,6 +37,7 @@ import 'package:shiftex/features/home/presentation/bloc/home_bloc.dart';
 import 'package:shiftex/features/home/presentation/bloc/home_event.dart';
 import 'package:shiftex/features/home/presentation/bloc/home_state.dart';
 import 'package:shiftex/features/home/presentation/pages/home_page.dart';
+import 'package:shiftex/features/home/presentation/widgets/home_formatters.dart';
 
 class _MockGetHomeDashboardUseCase extends Mock
     implements GetHomeDashboardUseCase {}
@@ -248,6 +249,36 @@ void main() {
   });
 
   group('Home Dashboard Domain & Data Model Tests', () {
+    test(
+      'HomeFormatters.stripCurrencyCopy removes legacy currency amounts cleanly for points-only UI',
+      () {
+        expect(
+          HomeFormatters.stripCurrencyCopy(
+            '+80 pts (≈ ₹8.00) credited by Merchant Scan POS #4',
+          ),
+          '+80 pts credited by Merchant Scan POS #4',
+        );
+        expect(
+          HomeFormatters.stripCurrencyCopy(
+            '100 pts redeemed for ₹10.00 cashier discount at Blue Tokai.',
+          ),
+          '100 pts redeemed for cashier discount at Blue Tokai.',
+        );
+        expect(
+          HomeFormatters.stripCurrencyCopy(
+            '100 pts redeemed for ₹10.00 (Instant Reward) at Partner Store.',
+          ),
+          '100 pts redeemed (Instant Reward) at Partner Store.',
+        );
+        expect(
+          HomeFormatters.stripCurrencyCopy(
+            'Earn 2X points on all purchases above ₹500 across partner stores.',
+          ),
+          'Earn 2X points on all purchases across partner stores.',
+        );
+      },
+    );
+
     test(
       'Available and Locked balance INR equivalents and conversion rates are calculated accurately',
       () {
@@ -484,14 +515,14 @@ void main() {
         expect(find.text('SHFT-8921'), findsOneWidget);
         expect(find.text('Active'), findsOneWidget);
 
-        // 2. Available Balance Card
+        // 2. Available Balance Card (points only - no currency shown)
         expect(find.text('Available Balance'), findsOneWidget);
-        expect(find.text('10 pts = ₹1.00'), findsOneWidget);
-        expect(find.text('≈ ₹245.00'), findsOneWidget);
+        expect(find.text('Instant Wallet'), findsOneWidget);
+        expect(find.text('↑ +150 pts today'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
 
         // 3. Locked Points Card
         expect(find.text('550 pts locked'), findsOneWidget);
-        expect(find.text('≈ ₹55.00'), findsOneWidget);
 
         // 4. Daily Streak Progress Card
         expect(find.text('4 Day Streak 🔥'), findsOneWidget);
@@ -520,7 +551,7 @@ void main() {
 
         expect(find.text('Single-Use Claim QR'), findsOneWidget);
         expect(find.text('CLM-9942-X7B'), findsOneWidget);
-        expect(find.text('100 pts = ₹10.00 Off Bill'), findsOneWidget);
+        expect(find.text('100 pts Instant Claim'), findsOneWidget);
         // Verify QR payload does not expose wallet balance or email/phone
         expect(buildQrToken().qrPayload.contains('2450'), isFalse);
         expect(buildQrToken().qrPayload.contains('vishnu'), isFalse);

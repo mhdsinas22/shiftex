@@ -27,11 +27,6 @@ class LockedPointsDetails extends StatelessWidget {
         MapEntry('Merchant / Branch', d.merchantName!),
       if (d.billNumber != null && d.billNumber!.isNotEmpty)
         MapEntry('Bill Reference', '#${d.billNumber!}'),
-      if (d.purchaseAmount != null)
-        MapEntry(
-          'Purchase Amount',
-          HomeFormatters.formatInr(d.purchaseAmount!),
-        ),
       MapEntry(
         isRelease ? 'Released Points' : 'Total Points Credited',
         '+${HomeFormatters.formatPoints(totalPts)} pts',
@@ -56,10 +51,6 @@ class LockedPointsDetails extends StatelessWidget {
           'Unlocked On',
           HomeFormatters.formatUnlockDateTime(d.unlockedAt!),
         ),
-      MapEntry(
-        'Historical Value',
-        '${HomeFormatters.formatInr(transaction.historicalInrValue)} (${transaction.historicalPointsPerRupee} pts = ₹1.00)',
-      ),
       MapEntry(
         'Status',
         d.allocationStatus?.isNotEmpty == true

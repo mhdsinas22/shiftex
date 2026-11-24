@@ -1,5 +1,6 @@
 import 'package:shiftex/core/errors/exceptions.dart';
 import 'package:shiftex/features/claim_rewards/data/models/claim_rewards_models.dart';
+import 'package:shiftex/features/home/presentation/widgets/home_formatters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class ClaimRewardsRemoteDataSource {
@@ -174,21 +175,25 @@ class ClaimRewardsRemoteDataSourceImpl implements ClaimRewardsRemoteDataSource {
       'INVALID_RATE:',
       'INVALID_CLAIM:',
       'CLAIM_NOT_FOUND:',
+      'CLAIM_AMOUNT_MISMATCH:',
     ]) {
       final idx = msg.indexOf(prefix);
       if (idx >= 0) {
-        final detail = msg.substring(idx + prefix.length).trim();
+        final detail = HomeFormatters.stripCurrencyCopy(
+          msg.substring(idx + prefix.length).trim(),
+        );
         return AppAuthException(
-          detail.isEmpty ? msg : detail,
+          detail.isEmpty ? HomeFormatters.stripCurrencyCopy(msg) : detail,
           code: 'validation_failure',
         );
       }
     }
 
+    final cleanMsg = HomeFormatters.stripCurrencyCopy(msg.trim());
     return AppAuthException(
-      msg.trim().isEmpty
+      cleanMsg.isEmpty
           ? 'Unable to process claim request right now. Please try again.'
-          : msg.trim(),
+          : cleanMsg,
       code: 'server_failure',
     );
   }

@@ -180,7 +180,7 @@ void main() {
       // Starts on Screen 4: Login ("Welcome back")
       expect(find.text('Welcome back'), findsOneWidget);
       expect(
-        find.text('₹50 registration bonus awaits new members'),
+        find.text('500 bonus points await new members'),
         findsOneWidget,
       );
 

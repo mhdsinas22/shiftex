@@ -75,4 +75,89 @@ void main() {
       expect('9876543210'.normalizeMobile(), '+919876543210');
     });
   });
+
+  group('Change Password Strong Validation Tests', () {
+    test('Current password validator rejects empty values', () {
+      expect(Validators.validateCurrentPassword(''), isNotNull);
+      expect(Validators.validateCurrentPassword(null), isNotNull);
+      expect(Validators.validateCurrentPassword('Current1!'), isNull);
+    });
+
+    test('Strong password checks all 5 complexity rules individually', () {
+      expect(Validators.hasPasswordUppercase('abc123!@'), isFalse);
+      expect(Validators.hasPasswordUppercase('Abc123!@'), isTrue);
+
+      expect(Validators.hasPasswordLowercase('ABC123!@'), isFalse);
+      expect(Validators.hasPasswordLowercase('ABc123!@'), isTrue);
+
+      expect(Validators.hasPasswordSpecialChar('Abcd1234'), isFalse);
+      expect(Validators.hasPasswordSpecialChar('Abcd123 '), isFalse);
+      expect(Validators.hasPasswordSpecialChar('Abcd123!'), isTrue);
+      expect(Validators.hasPasswordSpecialChar('Abcd123_'), isTrue);
+
+      expect(Validators.isStrongPasswordSatisfied('Abcd123!'), isTrue);
+      expect(Validators.isStrongPasswordSatisfied('Abcd1234'), isFalse);
+    });
+
+    test('Password strength evaluator returns monotonic tiers', () {
+      expect(
+        Validators.evaluatePasswordStrength(''),
+        PasswordStrengthLevel.empty,
+      );
+      expect(
+        Validators.evaluatePasswordStrength('abc1'),
+        PasswordStrengthLevel.weak,
+      );
+      expect(
+        Validators.evaluatePasswordStrength('Abcdefgh'),
+        PasswordStrengthLevel.fair,
+      );
+      expect(
+        Validators.evaluatePasswordStrength('Abcdefg1'),
+        PasswordStrengthLevel.good,
+      );
+      expect(
+        Validators.evaluatePasswordStrength('Abcdef1!'),
+        PasswordStrengthLevel.strong,
+      );
+    });
+
+    test('New password validator rejects weak and same passwords', () {
+      expect(Validators.validateStrongNewPassword(''), isNotNull);
+      expect(Validators.validateStrongNewPassword('Short1!'), isNotNull);
+      expect(Validators.validateStrongNewPassword('lowercase1!'), isNotNull);
+      expect(Validators.validateStrongNewPassword('UPPERCASE1!'), isNotNull);
+      expect(Validators.validateStrongNewPassword('NoNumberHere!'), isNotNull);
+      expect(Validators.validateStrongNewPassword('NoSpecial1'), isNotNull);
+      expect(
+        Validators.validateStrongNewPassword(
+          'ValidPass1!',
+          currentPassword: 'ValidPass1!',
+        ),
+        'New password must be different from current password',
+      );
+      expect(
+        Validators.validateStrongNewPassword(
+          'NewValid1!',
+          currentPassword: 'OldValid1!',
+        ),
+        isNull,
+      );
+    });
+
+    test('Confirm new password validator checks match cleanly', () {
+      expect(
+        Validators.validateConfirmNewPassword('', 'NewValid1!'),
+        isNotNull,
+      );
+      expect(
+        Validators.validateConfirmNewPassword('Mismatch1!', 'NewValid1!'),
+        'Passwords do not match',
+      );
+      expect(
+        Validators.validateConfirmNewPassword('NewValid1!', 'NewValid1!'),
+        isNull,
+      );
+    });
+  });
 }

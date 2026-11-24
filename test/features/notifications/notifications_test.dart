@@ -828,6 +828,11 @@ void main() {
           find.text('Points Credited at Metro Fresh Mart'),
           findsOneWidget,
         );
+        expect(
+          find.text('+80 pts credited by Merchant Scan POS #4'),
+          findsOneWidget,
+        );
+        expect(find.textContaining('₹'), findsNothing);
         expect(find.text('Daily Login Streak Day 4 Claimed'), findsOneWidget);
         expect(find.text('Milestone Reward Unlocked!'), findsOneWidget);
         // 3 unread notifications initially

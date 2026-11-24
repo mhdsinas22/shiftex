@@ -19,10 +19,12 @@ import 'package:shiftex/features/authentication/presentation/bloc/authentication
 
 class ForgotPasswordPage extends StatefulWidget {
   final String? initialEmail;
+  final bool fromChangePassword;
 
   const ForgotPasswordPage({
     super.key,
     this.initialEmail,
+    this.fromChangePassword = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   late final TextEditingController _emailController;
   bool _isEditingEmail = false;
   bool _submittedOnce = false;
+  bool _returningToChangePassword = false;
 
   @override
   void initState() {
@@ -82,6 +85,27 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
+  void _navigateBackOrReturn(AuthenticationState state) {
+    FocusScope.of(context).unfocus();
+    if (!widget.fromChangePassword) {
+      context.go(RoutesNames.login);
+      return;
+    }
+
+    if (state is AuthenticationSuccess) {
+      final router = GoRouter.maybeOf(context);
+      if (router != null && router.canPop()) {
+        router.pop();
+      } else {
+        context.go(RoutesNames.changePassword);
+      }
+      return;
+    }
+
+    _returningToChangePassword = true;
+    context.read<AuthenticationBloc>().add(const AuthSessionChanged());
+  }
+
   @override
   Widget build(BuildContext context) {
     final responsive = ResponsiveLayout.of(context);
@@ -94,9 +118,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     return BlocConsumer<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
+        if (_returningToChangePassword) {
+          if (state is AuthenticationSuccess) {
+            _returningToChangePassword = false;
+            context.go(RoutesNames.changePassword);
+            return;
+          }
+          if (state is Unauthenticated) {
+            _returningToChangePassword = false;
+            context.go(RoutesNames.login);
+            return;
+          }
+        }
         if (state is AuthenticationFailure) {
+          _returningToChangePassword = false;
           context.showFeedbackSnackBar(state.failure.message);
         } else if (state is PasswordResetEmailSent) {
+          _returningToChangePassword = false;
           context.showFeedbackSnackBar(
             state.message,
             isError: false,
@@ -104,7 +142,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           context.go(
             Uri(
               path: RoutesNames.resetCode,
-              queryParameters: {'email': state.email},
+              queryParameters: {
+                'email': state.email,
+                if (widget.fromChangePassword) 'from': 'change-password',
+              },
             ).toString(),
           );
         }
@@ -121,7 +162,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 shape: const CircleBorder(),
                 child: InkWell(
                   customBorder: const CircleBorder(),
-                  onTap: () => context.go(RoutesNames.login),
+                  onTap: () => _navigateBackOrReturn(state),
                   child: const SizedBox(
                     width: 44,
                     height: 44,
@@ -333,15 +374,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                     InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      onTap: () => context.go(RoutesNames.login),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      onTap: () => _navigateBackOrReturn(state),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 4,
                           vertical: 4,
                         ),
                         child: Text(
-                          'Log in',
-                          style: TextStyle(
+                          widget.fromChangePassword
+                              ? 'Back to Change Password'
+                              : 'Log in',
+                          style: const TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryBlue,

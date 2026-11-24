@@ -24,9 +24,12 @@ class PromotionalCampaignCard extends StatelessWidget {
       campaign.startAt,
       campaign.endAt,
     );
+    final cleanOffer = HomeFormatters.stripCurrencyCopy(
+      campaign.offerDetails.trim(),
+    );
     final detailsStr =
-        campaign.offerDetails.trim().isNotEmpty
-            ? '$dateRangeStr • ${campaign.offerDetails.trim()}'
+        cleanOffer.isNotEmpty
+            ? '$dateRangeStr • $cleanOffer'
             : '$dateRangeStr • Exclusive partner rewards campaign for verified members.';
 
     return Container(

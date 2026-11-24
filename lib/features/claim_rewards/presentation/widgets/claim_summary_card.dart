@@ -21,9 +21,7 @@ class ClaimSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ptsStr = '${HomeFormatters.formatPoints(pointsToDeduct)} pts';
-    final discountStr = '${HomeFormatters.formatInr(discountInr)} Off Bill';
     final remPtsStr = '${HomeFormatters.formatPoints(remainingBalance)} pts';
-    final remInrStr = HomeFormatters.formatInr(remainingBalanceInr);
 
     return Container(
       width: double.infinity,
@@ -49,11 +47,11 @@ class ClaimSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _buildSummaryRow(
-            label: 'Instant Discount Value',
-            valueWidget: Text(
-              discountStr,
+            label: 'Redemption Type',
+            valueWidget: const Text(
+              'Instant Points Claim',
               textAlign: TextAlign.end,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF15803D),
@@ -63,28 +61,14 @@ class ClaimSummaryCard extends StatelessWidget {
           const Divider(height: 22, thickness: 1, color: AppColors.divider),
           _buildSummaryRow(
             label: 'Remaining Available Balance',
-            valueWidget: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: remPtsStr,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' ($remInrStr)',
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
+            valueWidget: Text(
+              remPtsStr,
               textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],

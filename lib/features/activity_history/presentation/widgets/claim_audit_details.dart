@@ -16,8 +16,6 @@ class ClaimAuditDetails extends StatelessWidget {
         transaction.pointsDelta < 0
             ? transaction.pointsDelta.abs()
             : (d.requestedPoints ?? 0);
-    final rateLabel =
-        '${transaction.historicalPointsPerRupee} pts = ₹1.00 (₹${transaction.historicalRate.toStringAsFixed(2)}/pt)';
     final timestamp = HomeFormatters.formatUnlockDateTime(
       d.redeemedAt ?? transaction.createdAt,
     );
@@ -50,11 +48,6 @@ class ClaimAuditDetails extends StatelessWidget {
         transaction.isFailedOrCancelledClaim
             ? '${HomeFormatters.formatPoints(pts)} pts (Released)'
             : '-${HomeFormatters.formatPoints(pts)} pts',
-      ),
-      MapEntry('Applied Conversion Rate', rateLabel),
-      MapEntry(
-        'Historical Cash Value',
-        HomeFormatters.formatInr(transaction.historicalInrValue),
       ),
       MapEntry('Timestamp', timestamp),
       MapEntry(

@@ -236,7 +236,7 @@ class _StatementExportSheetState extends State<StatementExportSheet> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: const Text(
-                    'Includes Customer Name, Membership ID, Opening Balance, Total Earned, Total Redeemed, Locked Allocations & Releases, Closing Balance, and Itemized Historical INR Ledger.',
+                    'Includes Customer Name, Membership ID, Opening Balance, Total Earned, Total Redeemed, Locked Allocations & Releases, Closing Balance, and Itemized Points Ledger.',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,

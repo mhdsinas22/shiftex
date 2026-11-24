@@ -22,8 +22,13 @@ import 'package:shiftex/features/authentication/presentation/bloc/authentication
 
 class ResetCodePage extends StatefulWidget {
   final String email;
+  final bool fromChangePassword;
 
-  const ResetCodePage({super.key, required this.email});
+  const ResetCodePage({
+    super.key,
+    required this.email,
+    this.fromChangePassword = false,
+  });
 
   @override
   State<ResetCodePage> createState() => _ResetCodePageState();
@@ -182,9 +187,11 @@ class _ResetCodePageState extends State<ResetCodePage> {
                     context.go(
                       Uri(
                         path: RoutesNames.forgotPassword,
-                        queryParameters: email.isNotEmpty
-                            ? {'email': email}
-                            : null,
+                        queryParameters: {
+                          if (email.isNotEmpty) 'email': email,
+                          if (widget.fromChangePassword)
+                            'from': 'change-password',
+                        },
                       ).toString(),
                     );
                   },

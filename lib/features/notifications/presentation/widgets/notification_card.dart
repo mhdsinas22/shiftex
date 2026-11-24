@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shiftex/core/constants/app_colors.dart';
+import 'package:shiftex/features/home/presentation/widgets/home_formatters.dart';
 import 'package:shiftex/features/notifications/domain/entities/notification_category.dart';
 import 'package:shiftex/features/notifications/domain/entities/notification_entity.dart';
 import 'package:shiftex/features/notifications/presentation/widgets/unread_indicator.dart';
@@ -72,11 +73,13 @@ class NotificationCard extends StatelessWidget {
     final titleColor =
         isUnread ? AppColors.textPrimary : const Color(0xFF475467);
     final bodyColor = AppColors.textSecondary;
+    final cleanTitle = HomeFormatters.stripCurrencyCopy(notification.title);
+    final cleanBody = HomeFormatters.stripCurrencyCopy(notification.body);
 
     return Semantics(
       button: true,
       label:
-          '${notification.title}. ${notification.body}. ${isUnread ? "Unread" : "Read"}',
+          '$cleanTitle. $cleanBody. ${isUnread ? "Unread" : "Read"}',
       child: Material(
         color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(22),
@@ -104,7 +107,7 @@ class NotificationCard extends StatelessWidget {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    notification.title,
+                                    cleanTitle,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -133,7 +136,7 @@ class NotificationCard extends StatelessWidget {
                       const SizedBox(height: 5),
                       Text.rich(
                         _buildRichBody(
-                          body: notification.body,
+                          body: cleanBody,
                           baseColor: bodyColor,
                           isUnread: isUnread,
                         ),

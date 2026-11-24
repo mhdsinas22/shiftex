@@ -40,6 +40,11 @@ import 'package:shiftex/features/authentication/domain/usecases/reset_password_u
 import 'package:shiftex/features/authentication/domain/usecases/verify_email_otp_usecase.dart';
 import 'package:shiftex/features/authentication/domain/usecases/verify_password_reset_otp_usecase.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
+import 'package:shiftex/features/change_password/data/datasources/change_password_remote_data_source.dart';
+import 'package:shiftex/features/change_password/data/repositories/change_password_repository_impl.dart';
+import 'package:shiftex/features/change_password/domain/repositories/change_password_repository.dart';
+import 'package:shiftex/features/change_password/domain/usecases/change_password_usecase.dart';
+import 'package:shiftex/features/change_password/presentation/bloc/change_password_bloc.dart';
 import 'package:shiftex/features/home/data/datasources/home_remote_data_source.dart';
 import 'package:shiftex/features/home/data/repositories/home_repository_impl.dart';
 import 'package:shiftex/features/home/domain/repositories/home_repository.dart';
@@ -371,6 +376,25 @@ Future<void> initializeDependencies({
           getIt<GetUnreadNotificationCountUseCase>(),
       watchNotificationsRealtimeUseCase:
           getIt<WatchNotificationsRealtimeUseCase>(),
+    ),
+  );
+
+  // Change Password Feature
+  getIt.registerLazySingleton<ChangePasswordRemoteDataSource>(
+    () => ChangePasswordRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<ChangePasswordRepository>(
+    () => ChangePasswordRepositoryImpl(
+      remoteDataSource: getIt<ChangePasswordRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerLazySingleton<ChangePasswordUseCase>(
+    () => ChangePasswordUseCase(getIt<ChangePasswordRepository>()),
+  );
+  getIt.registerFactory<ChangePasswordBloc>(
+    () => ChangePasswordBloc(
+      changePasswordUseCase: getIt<ChangePasswordUseCase>(),
     ),
   );
 

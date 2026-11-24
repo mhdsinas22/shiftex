@@ -113,6 +113,110 @@ class Validators {
     return null;
   }
 
+  static final RegExp _changePasswordUpperRegExp = RegExp(r'[A-Z]');
+  static final RegExp _changePasswordLowerRegExp = RegExp(r'[a-z]');
+  static final RegExp _changePasswordSpecialRegExp = RegExp(r'[^\w\s]|_');
+
+  /// Checks whether [value] contains at least one uppercase ASCII letter.
+  static bool hasPasswordUppercase(String value) =>
+      _changePasswordUpperRegExp.hasMatch(value);
+
+  /// Checks whether [value] contains at least one lowercase ASCII letter.
+  static bool hasPasswordLowercase(String value) =>
+      _changePasswordLowerRegExp.hasMatch(value);
+
+  /// Checks whether [value] contains at least one special punctuation/symbol character.
+  static bool hasPasswordSpecialChar(String value) =>
+      _changePasswordSpecialRegExp.hasMatch(value);
+
+  /// Counts how many of the 5 Change Password security rules [value] satisfies.
+  static int countSatisfiedStrongPasswordRules(String value) {
+    var count = 0;
+    if (hasPasswordMinLength(value)) count++;
+    if (hasPasswordUppercase(value)) count++;
+    if (hasPasswordLowercase(value)) count++;
+    if (hasPasswordNumber(value)) count++;
+    if (hasPasswordSpecialChar(value)) count++;
+    return count;
+  }
+
+  /// Returns `true` only when [value] satisfies all 5 strong password criteria.
+  static bool isStrongPasswordSatisfied(String value) =>
+      countSatisfiedStrongPasswordRules(value) == 5;
+
+  /// Evaluates password strength across 5 discrete levels for Change Password UI.
+  static PasswordStrengthLevel evaluatePasswordStrength(String value) {
+    if (value.isEmpty) {
+      return PasswordStrengthLevel.empty;
+    }
+    final score = countSatisfiedStrongPasswordRules(value);
+    if (!hasPasswordMinLength(value) || score <= 2) {
+      return PasswordStrengthLevel.weak;
+    }
+    if (score == 3) {
+      return PasswordStrengthLevel.fair;
+    }
+    if (score == 4) {
+      return PasswordStrengthLevel.good;
+    }
+    return PasswordStrengthLevel.strong;
+  }
+
+  /// Validates the current password input for Change Password.
+  static String? validateCurrentPassword(String? value) {
+    if ((value ?? '').isEmpty) {
+      return 'Current password is required';
+    }
+    return null;
+  }
+
+  /// Validates the new password against strong password rules and distinctness.
+  static String? validateStrongNewPassword(
+    String? value, {
+    String? currentPassword,
+  }) {
+    final raw = value ?? '';
+    if (raw.isEmpty) {
+      return 'New password is required';
+    }
+    if (!hasPasswordMinLength(raw)) {
+      return 'Password must be at least 8 characters';
+    }
+    if (!hasPasswordUppercase(raw)) {
+      return 'Include at least 1 uppercase letter';
+    }
+    if (!hasPasswordLowercase(raw)) {
+      return 'Include at least 1 lowercase letter';
+    }
+    if (!hasPasswordNumber(raw)) {
+      return 'Include at least 1 number';
+    }
+    if (!hasPasswordSpecialChar(raw)) {
+      return 'Include at least 1 special character';
+    }
+    if (currentPassword != null &&
+        currentPassword.isNotEmpty &&
+        raw == currentPassword) {
+      return 'New password must be different from current password';
+    }
+    return null;
+  }
+
+  /// Validates that confirmation matches [newPassword] cleanly.
+  static String? validateConfirmNewPassword(
+    String? value,
+    String newPassword,
+  ) {
+    final raw = value ?? '';
+    if (raw.isEmpty) {
+      return 'Please confirm your new password';
+    }
+    if (raw != newPassword) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
   static String? validateConfirmPassword(String? value, String password) {
     final raw = value ?? '';
     if (raw.isEmpty) {
@@ -132,3 +236,6 @@ class Validators {
     return null;
   }
 }
+
+/// Strength tiers shown on the Change Password indicator.
+enum PasswordStrengthLevel { empty, weak, fair, good, strong }

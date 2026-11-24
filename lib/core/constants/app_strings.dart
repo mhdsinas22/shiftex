@@ -3,7 +3,7 @@ class AppStrings {
 
   static const String appName = 'Shiiftex';
   static const String bonusBannerText =
-      '₹50 registration bonus awaits new members';
+      '500 bonus points await new members';
   static const String encryptedVaultFooter =
       'End-to-end encrypted rewards vault';
   static const String encryptedVault256Footer =

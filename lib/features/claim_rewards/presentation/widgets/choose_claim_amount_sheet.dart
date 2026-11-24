@@ -132,7 +132,7 @@ class _ChooseClaimAmountSheetState extends State<ChooseClaimAmountSheet> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Select points to convert to instant cashier discount',
+                            'Select points to redeem at the cashier',
                             style: TextStyle(
                               fontSize: 12.5,
                               color: AppColors.textSecondary,
@@ -343,7 +343,7 @@ class _ChooseClaimAmountSheetState extends State<ChooseClaimAmountSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${HomeFormatters.formatPoints(pending.points)} pts (${HomeFormatters.formatInr(pending.discountAmount)}) reserved for cashier scan.',
+            '${HomeFormatters.formatPoints(pending.points)} pts reserved for cashier scan.',
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,

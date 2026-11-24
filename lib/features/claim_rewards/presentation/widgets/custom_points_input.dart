@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shiftex/core/constants/app_colors.dart';
-import 'package:shiftex/features/home/presentation/widgets/home_formatters.dart';
 
-/// Numeric positive-integer input for custom claim points with live INR badge.
+/// Numeric positive-integer input for custom claim points with live pts badge.
 class CustomPointsInput extends StatefulWidget {
   final String value;
   final double discountInr;
@@ -135,9 +134,9 @@ class _CustomPointsInputState extends State<CustomPointsInput> {
                   color: const Color(0xFF8EF63C),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(
-                  HomeFormatters.formatInr(widget.discountInr),
-                  style: const TextStyle(
+                child: const Text(
+                  'pts',
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0B2405),

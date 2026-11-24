@@ -534,7 +534,8 @@ void main() {
         expect(csvContent, contains('Opening Available Balance (pts),100'));
         expect(csvContent, contains('Closing Available Balance (pts),150'));
         expect(csvContent, contains('TXN-CLM01'));
-        expect(csvContent, contains('25.00'));
+        expect(csvContent, isNot(contains('Historical INR')));
+        expect(csvContent, isNot(contains('₹')));
         expect(sharedFiles.length, 2);
 
         // Balance mismatch throws validation failure cleanly
@@ -810,9 +811,10 @@ void main() {
 
         expect(find.text('Activity & History'), findsOneWidget);
         expect(find.text('2,450 pts'), findsOneWidget);
-        expect(find.text('≈ ₹245.00'), findsOneWidget);
+        expect(find.text('Points Wallet'), findsOneWidget);
         expect(find.text('3,200 pts'), findsOneWidget);
         expect(find.text('750 pts'), findsOneWidget);
+        expect(find.textContaining('₹'), findsNothing);
         expect(find.textContaining('Ledger reconciliation note'), findsOneWidget);
 
         // Split POS badges

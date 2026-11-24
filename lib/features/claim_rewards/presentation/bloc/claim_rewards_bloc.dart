@@ -284,8 +284,8 @@ class ClaimRewardsBloc extends Bloc<ClaimRewardsEvent, ClaimRewardsState> {
       emit(
         state.copyWith(
           inputValidationError:
-              validationError ?? 'Select a valid discount amount.',
-          errorMessage: validationError ?? 'Select a valid discount amount.',
+              validationError ?? 'Select a valid points amount.',
+          errorMessage: validationError ?? 'Select a valid points amount.',
           feedbackSequence: state.feedbackSequence + 1,
         ),
       );
@@ -430,8 +430,7 @@ class ClaimRewardsBloc extends Bloc<ClaimRewardsEvent, ClaimRewardsState> {
               walletContext: operation.wallet,
               currentClaim: claim,
               remainingSeconds: 0,
-              successMessage:
-                  'Redeemed ${claim.points} pts for bill discount!',
+              successMessage: 'Redeemed ${claim.points} pts!',
               feedbackSequence: state.feedbackSequence + 1,
               clearErrorMessage: true,
             ),
