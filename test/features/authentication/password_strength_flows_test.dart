@@ -60,8 +60,12 @@ void main() {
     testWidgets(
       'displays live Password Strength meter & 5 rules, blocks weak passwords, and submits strong password',
       (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(430, 932));
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        tester.view.physicalSize = const Size(430, 932);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
         final mockAuthBloc = _MockAuthenticationBloc();
         when(() => mockAuthBloc.state).thenReturn(
@@ -144,8 +148,12 @@ void main() {
     testWidgets(
       'SetNewPasswordPage renders cleanly without overflow on compact 320x568 viewport',
       (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(320, 568));
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
         final mockAuthBloc = _MockAuthenticationBloc();
         when(() => mockAuthBloc.state).thenReturn(
@@ -170,8 +178,12 @@ void main() {
     testWidgets(
       'displays live Password Strength meter & 5 rules, blocks weak passwords, and submits strong registration',
       (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(430, 932));
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        tester.view.physicalSize = const Size(430, 932);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
         final mockAuthBloc = _MockAuthenticationBloc();
         when(() => mockAuthBloc.state).thenReturn(const Unauthenticated());
@@ -272,8 +284,12 @@ void main() {
     testWidgets(
       'RegistrationPage renders cleanly without overflow on compact 320x568 viewport',
       (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(320, 568));
-        addTearDown(() async => tester.binding.setSurfaceSize(null));
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
         final mockAuthBloc = _MockAuthenticationBloc();
         when(() => mockAuthBloc.state).thenReturn(const Unauthenticated());

@@ -30,6 +30,12 @@ void openProfileSheet(
         onChangePassword: () {
           router?.push(RoutesNames.changePassword);
         },
+        onChangeEmail: () {
+          router?.push(RoutesNames.changeEmail);
+        },
+        onChangePhone: () {
+          router?.push(RoutesNames.changePhone);
+        },
         onSignOut: () {
           signOutDialog(context);
         },

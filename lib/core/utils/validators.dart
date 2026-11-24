@@ -49,6 +49,49 @@ class Validators {
     return null;
   }
 
+  /// Extracts a normalized 10-digit phone number from a stored phone string
+  /// (e.g. `+919876543210` -> `9876543210`) for comparison and display.
+  static String extractTenDigitPhone(String? value) {
+    final trimmed = (value ?? '').trim().replaceAll(RegExp(r'[\s\-()]'), '');
+    if (trimmed.isEmpty) return '';
+    if (trimmed.startsWith('+91') && trimmed.length == 13) {
+      return trimmed.substring(3);
+    }
+    if (trimmed.startsWith('91') &&
+        trimmed.length == 12 &&
+        _digitsOnlyRegExp.hasMatch(trimmed)) {
+      return trimmed.substring(2);
+    }
+    return trimmed;
+  }
+
+  /// Strictly validates a 10-digit numeric phone number for Change Phone Number:
+  /// - Trims leading/trailing whitespace.
+  /// - Rejects empty input.
+  /// - Allows only numeric digits (0-9), rejecting letters, spaces, and symbols.
+  /// - Requires exactly 10 digits.
+  /// - Rejects entering the same phone number as [currentPhoneNumber].
+  static String? validateNewPhoneNumber(
+    String? value, {
+    String? currentPhoneNumber,
+  }) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'Phone number is required';
+    }
+    if (!_digitsOnlyRegExp.hasMatch(trimmed)) {
+      return 'Only numeric digits (0-9) are allowed';
+    }
+    if (trimmed.length != 10) {
+      return 'Phone number must be exactly 10 digits';
+    }
+    final currentTenDigits = extractTenDigitPhone(currentPhoneNumber);
+    if (currentTenDigits.isNotEmpty && trimmed == currentTenDigits) {
+      return 'New phone number must be different from your current phone number';
+    }
+    return null;
+  }
+
   static String? validateEmail(String? value) {
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
@@ -56,6 +99,42 @@ class Validators {
     }
     if (!_emailRegExp.hasMatch(trimmed)) {
       return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  /// Validates a new email address for Change Email and ensures it differs
+  /// from [currentEmail].
+  static String? validateNewEmail(
+    String? value, {
+    String? currentEmail,
+  }) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'New email address is required';
+    }
+    if (!_emailRegExp.hasMatch(trimmed)) {
+      return 'Enter a valid email address';
+    }
+    final normalizedCurrent = (currentEmail ?? '').trim().toLowerCase();
+    if (normalizedCurrent.isNotEmpty &&
+        trimmed.toLowerCase() == normalizedCurrent) {
+      return 'New email must be different from your current email';
+    }
+    return null;
+  }
+
+  /// Validates that confirmation email matches [newEmail] case-insensitively.
+  static String? validateConfirmNewEmail(
+    String? value,
+    String newEmail,
+  ) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'Please confirm your new email address';
+    }
+    if (trimmed.toLowerCase() != newEmail.trim().toLowerCase()) {
+      return 'Email addresses do not match';
     }
     return null;
   }

@@ -40,11 +40,21 @@ import 'package:shiftex/features/authentication/domain/usecases/reset_password_u
 import 'package:shiftex/features/authentication/domain/usecases/verify_email_otp_usecase.dart';
 import 'package:shiftex/features/authentication/domain/usecases/verify_password_reset_otp_usecase.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
+import 'package:shiftex/features/change_email/data/datasources/change_email_remote_data_source.dart';
+import 'package:shiftex/features/change_email/data/repositories/change_email_repository_impl.dart';
+import 'package:shiftex/features/change_email/domain/repositories/change_email_repository.dart';
+import 'package:shiftex/features/change_email/domain/usecases/change_email_usecase.dart';
+import 'package:shiftex/features/change_email/presentation/bloc/change_email_bloc.dart';
 import 'package:shiftex/features/change_password/data/datasources/change_password_remote_data_source.dart';
 import 'package:shiftex/features/change_password/data/repositories/change_password_repository_impl.dart';
 import 'package:shiftex/features/change_password/domain/repositories/change_password_repository.dart';
 import 'package:shiftex/features/change_password/domain/usecases/change_password_usecase.dart';
 import 'package:shiftex/features/change_password/presentation/bloc/change_password_bloc.dart';
+import 'package:shiftex/features/change_phone/data/datasources/change_phone_remote_data_source.dart';
+import 'package:shiftex/features/change_phone/data/repositories/change_phone_repository_impl.dart';
+import 'package:shiftex/features/change_phone/domain/repositories/change_phone_repository.dart';
+import 'package:shiftex/features/change_phone/domain/usecases/change_phone_usecase.dart';
+import 'package:shiftex/features/change_phone/presentation/bloc/change_phone_bloc.dart';
 import 'package:shiftex/features/home/data/datasources/home_remote_data_source.dart';
 import 'package:shiftex/features/home/data/repositories/home_repository_impl.dart';
 import 'package:shiftex/features/home/domain/repositories/home_repository.dart';
@@ -395,6 +405,62 @@ Future<void> initializeDependencies({
   getIt.registerFactory<ChangePasswordBloc>(
     () => ChangePasswordBloc(
       changePasswordUseCase: getIt<ChangePasswordUseCase>(),
+    ),
+  );
+
+  // Change Email Feature
+  getIt.registerLazySingleton<ChangeEmailRemoteDataSource>(
+    () => ChangeEmailRemoteDataSourceImpl(
+      getIt<SupabaseClient>(),
+      secureStorageService: getIt<SecureStorageService>(),
+    ),
+  );
+  getIt.registerLazySingleton<ChangeEmailRepository>(
+    () => ChangeEmailRepositoryImpl(
+      remoteDataSource: getIt<ChangeEmailRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerLazySingleton<ChangeEmailUseCase>(
+    () => ChangeEmailUseCase(getIt<ChangeEmailRepository>()),
+  );
+  getIt.registerLazySingleton<VerifyEmailChangeOtpUseCase>(
+    () => VerifyEmailChangeOtpUseCase(getIt<ChangeEmailRepository>()),
+  );
+  getIt.registerLazySingleton<ResendEmailChangeUseCase>(
+    () => ResendEmailChangeUseCase(getIt<ChangeEmailRepository>()),
+  );
+  getIt.registerLazySingleton<CheckEmailChangeStatusUseCase>(
+    () => CheckEmailChangeStatusUseCase(getIt<ChangeEmailRepository>()),
+  );
+  getIt.registerFactory<ChangeEmailBloc>(
+    () => ChangeEmailBloc(
+      changeEmailUseCase: getIt<ChangeEmailUseCase>(),
+      verifyEmailChangeOtpUseCase: getIt<VerifyEmailChangeOtpUseCase>(),
+      resendEmailChangeUseCase: getIt<ResendEmailChangeUseCase>(),
+      checkEmailChangeStatusUseCase: getIt<CheckEmailChangeStatusUseCase>(),
+    ),
+  );
+
+  // Change Phone Number Feature
+  getIt.registerLazySingleton<ChangePhoneRemoteDataSource>(
+    () => ChangePhoneRemoteDataSourceImpl(
+      getIt<SupabaseClient>(),
+      secureStorageService: getIt<SecureStorageService>(),
+    ),
+  );
+  getIt.registerLazySingleton<ChangePhoneRepository>(
+    () => ChangePhoneRepositoryImpl(
+      remoteDataSource: getIt<ChangePhoneRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerLazySingleton<ChangePhoneUseCase>(
+    () => ChangePhoneUseCase(getIt<ChangePhoneRepository>()),
+  );
+  getIt.registerFactory<ChangePhoneBloc>(
+    () => ChangePhoneBloc(
+      changePhoneUseCase: getIt<ChangePhoneUseCase>(),
     ),
   );
 

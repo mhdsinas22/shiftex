@@ -88,7 +88,9 @@ class AuthenticationBloc
         }
       } else if (eventName == 'passwordRecovery') {
         add(AuthSessionChanged(sessionEvent: eventName));
-      } else if (eventName == 'signedIn' || eventName == 'tokenRefreshed') {
+      } else if (eventName == 'signedIn' ||
+          eventName == 'tokenRefreshed' ||
+          eventName == 'userUpdated') {
         if (!_isProcessingPasswordRecovery && !_isLoggingOut && !_isSigningIn) {
           add(AuthSessionChanged(sessionEvent: eventName));
         }
@@ -443,6 +445,9 @@ class AuthenticationBloc
               infoMessage: failure.message,
             ),
           );
+        } else if (failure is! SessionExpiredFailure &&
+            _currentProfile != null) {
+          emit(_mapProfileToState(_currentProfile!));
         } else {
           emit(const Unauthenticated());
         }

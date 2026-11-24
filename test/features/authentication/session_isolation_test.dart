@@ -259,9 +259,7 @@ void main() {
     registerFallbackValue(
       const GetEligibleAdvertisementParams(userId: '', sessionId: ''),
     );
-    registerFallbackValue(
-      const ClearAdvertisementSessionParams(sessionId: ''),
-    );
+    registerFallbackValue(const ClearAdvertisementSessionParams(sessionId: ''));
     registerFallbackValue(SignOutScope.local);
   });
 
@@ -280,7 +278,9 @@ void main() {
         };
 
         final mockStorage = _MockFlutterSecureStorage();
-        when(() => mockStorage.read(key: any(named: 'key'))).thenAnswer((inv) async {
+        when(() => mockStorage.read(key: any(named: 'key'))).thenAnswer((
+          inv,
+        ) async {
           final key = inv.namedArguments[#key] as String;
           return store[key];
         });
@@ -392,7 +392,10 @@ void main() {
         verify(() => mockAuth.signOut(scope: SignOutScope.local)).called(1);
         expect(activeSession, isNull);
         expect(activeUser, isNull);
-        expect(storageMap.containsKey('shiiftex_remembered_identifier'), isFalse);
+        expect(
+          storageMap.containsKey('shiiftex_remembered_identifier'),
+          isFalse,
+        );
       },
     );
 
@@ -414,7 +417,10 @@ void main() {
         });
 
         await dataSource.logout();
-        expect(storageMap.containsKey('shiiftex_remembered_identifier'), isFalse);
+        expect(
+          storageMap.containsKey('shiiftex_remembered_identifier'),
+          isFalse,
+        );
 
         // 2. Non-network server error -> surfaces exception
         activeUser = userA;
@@ -425,11 +431,17 @@ void main() {
         ) async {
           activeSession = null;
           activeUser = null;
-          throw const AuthException('Internal server failure', statusCode: '500');
+          throw const AuthException(
+            'Internal server failure',
+            statusCode: '500',
+          );
         });
 
         await expectLater(dataSource.logout(), throwsA(isA<AuthException>()));
-        expect(storageMap.containsKey('shiiftex_remembered_identifier'), isFalse);
+        expect(
+          storageMap.containsKey('shiiftex_remembered_identifier'),
+          isFalse,
+        );
       },
     );
 
@@ -461,11 +473,8 @@ void main() {
 
         // First simulate mismatched profile from User A -> rejected!
         when(() => mockApprovalRemote.fetchCurrentCustomerProfile()).thenAnswer(
-          (_) async => buildProfileModel(
-            'user-a',
-            'Alice Smith',
-            'alice@example.com',
-          ),
+          (_) async =>
+              buildProfileModel('user-a', 'Alice Smith', 'alice@example.com'),
         );
 
         await expectLater(
@@ -514,7 +523,11 @@ void main() {
     late _MockAuthenticationRepository mockAuthRepo;
     late StreamController<String> authEventController;
 
-    final userA = buildProfileModel('user-a', 'Alice Smith', 'alice@example.com');
+    final userA = buildProfileModel(
+      'user-a',
+      'Alice Smith',
+      'alice@example.com',
+    );
     final userB = buildProfileModel('user-b', 'Bob Jones', 'bob@example.com');
 
     AuthenticationBloc buildAuthBloc() {
@@ -621,7 +634,9 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 40));
           return Right(userA);
         });
-        when(() => mockLogout(any())).thenAnswer((_) async => const Right(null));
+        when(
+          () => mockLogout(any()),
+        ).thenAnswer((_) async => const Right(null));
         return buildAuthBloc();
       },
       act: (bloc) async {
@@ -630,10 +645,7 @@ void main() {
         bloc.add(const LogoutRequested());
       },
       wait: const Duration(milliseconds: 80),
-      expect: () => [
-        const AuthenticationLoading(),
-        const Unauthenticated(),
-      ],
+      expect: () => [const AuthenticationLoading(), const Unauthenticated()],
     );
   });
 
@@ -641,7 +653,11 @@ void main() {
     test(
       'AppRouter keeps AuthenticationFailure with approved previousProfile on protected routes during failed logout',
       () {
-        final userA = buildProfileModel('user-a', 'Alice Smith', 'alice@example.com');
+        final userA = buildProfileModel(
+          'user-a',
+          'Alice Smith',
+          'alice@example.com',
+        );
         expect(
           AppRouter.evaluateAuthRedirect(
             authState: AuthenticationFailure(
@@ -705,16 +721,17 @@ void main() {
         final mockUnread = _MockGetUnreadNotificationCountUseCase();
         final mockWatch = _MockWatchNotificationsRealtimeUseCase();
 
-        final slowUserAFetch = Completer<Either<Failure, NotificationPageEntity>>();
-        when(() => mockWatch.connectionStateStream).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockWatch(userId: any(named: 'userId'))).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockWatch.stop(userId: any(named: 'userId'))).thenAnswer(
-          (_) async {},
-        );
+        final slowUserAFetch =
+            Completer<Either<Failure, NotificationPageEntity>>();
+        when(
+          () => mockWatch.connectionStateStream,
+        ).thenAnswer((_) => const Stream.empty());
+        when(
+          () => mockWatch(userId: any(named: 'userId')),
+        ).thenAnswer((_) => const Stream.empty());
+        when(
+          () => mockWatch.stop(userId: any(named: 'userId')),
+        ).thenAnswer((_) async {});
         var callCount = 0;
         when(() => mockGet(any())).thenAnswer((_) {
           callCount++;
@@ -803,7 +820,9 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
 
         slowCheck.complete(
-          Right(buildProfileModel('user-a', 'Alice Smith', 'alice@example.com')),
+          Right(
+            buildProfileModel('user-a', 'Alice Smith', 'alice@example.com'),
+          ),
         );
         await Future<void>.delayed(const Duration(milliseconds: 20));
 
@@ -814,12 +833,16 @@ void main() {
     testWidgets(
       'signOutDialog surfaces server failure SnackBar cleanly and closes only the dialog without typo',
       (WidgetTester tester) async {
-        final userA = buildProfileModel('user-a', 'Alice Smith', 'alice@example.com');
+        final userA = buildProfileModel(
+          'user-a',
+          'Alice Smith',
+          'alice@example.com',
+        );
         final mockLogout = _MockLogoutUseCase();
         final mockAuthRepo = _MockAuthenticationRepository();
-        when(() => mockAuthRepo.authSessionEvents).thenAnswer(
-          (_) => const Stream.empty(),
-        );
+        when(
+          () => mockAuthRepo.authSessionEvents,
+        ).thenAnswer((_) => const Stream.empty());
         when(() => mockLogout(any())).thenAnswer(
           (_) async =>
               const Left(ServerFailure('Server failed to revoke session.')),
@@ -881,13 +904,23 @@ void main() {
     testWidgets(
       'Scenarios 1, 2, 3 & 6: User A login -> Logout via signOutDialog resets Home/Notification/Ad/Approval state -> User B login shows only User B and survives simulated restart',
       (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(430, 932));
-        addTearDown(() async {
-          await tester.binding.setSurfaceSize(null);
+        tester.view.physicalSize = const Size(430, 932);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
         });
 
-        final userA = buildProfileModel('user-a', 'Alice Smith', 'alice@example.com');
-        final userB = buildProfileModel('user-b', 'Bob Jones', 'bob@example.com');
+        final userA = buildProfileModel(
+          'user-a',
+          'Alice Smith',
+          'alice@example.com',
+        );
+        final userB = buildProfileModel(
+          'user-b',
+          'Bob Jones',
+          'bob@example.com',
+        );
         final dashA = buildDashboard(
           'user-a',
           'Alice Smith',
@@ -927,9 +960,9 @@ void main() {
           persistedSessionUser = null;
           return const Right(null);
         });
-        when(() => mockGetSession(any())).thenAnswer(
-          (_) async => Right(persistedSessionUser),
-        );
+        when(
+          () => mockGetSession(any()),
+        ).thenAnswer((_) async => Right(persistedSessionUser));
 
         final mockDashboard = _MockGetHomeDashboardUseCase();
         when(() => mockDashboard(any())).thenAnswer((_) async {
@@ -942,15 +975,15 @@ void main() {
         final mockGetNotifs = _MockGetNotificationsUseCase();
         final mockWatchNotifs = _MockWatchNotificationsRealtimeUseCase();
         final mockUnreadNotifs = _MockGetUnreadNotificationCountUseCase();
-        when(() => mockWatchNotifs.connectionStateStream).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockWatchNotifs(userId: any(named: 'userId'))).thenAnswer(
-          (_) => const Stream.empty(),
-        );
-        when(() => mockWatchNotifs.stop(userId: any(named: 'userId'))).thenAnswer(
-          (_) async {},
-        );
+        when(
+          () => mockWatchNotifs.connectionStateStream,
+        ).thenAnswer((_) => const Stream.empty());
+        when(
+          () => mockWatchNotifs(userId: any(named: 'userId')),
+        ).thenAnswer((_) => const Stream.empty());
+        when(
+          () => mockWatchNotifs.stop(userId: any(named: 'userId')),
+        ).thenAnswer((_) async {});
         when(() => mockUnreadNotifs()).thenAnswer((_) async => const Right(1));
         when(() => mockGetNotifs(any())).thenAnswer((_) async {
           final uid = persistedSessionUser?.id ?? 'unknown';
@@ -976,7 +1009,9 @@ void main() {
         final mockTrackAd = _MockTrackAdvertisementAnalyticsUseCase();
         final mockClearAd = _MockClearAdvertisementSessionUseCase();
         when(() => mockGetAd(any())).thenAnswer((_) async => const Right(null));
-        when(() => mockClearAd(any())).thenAnswer((_) async => const Right(null));
+        when(
+          () => mockClearAd(any()),
+        ).thenAnswer((_) async => const Right(null));
 
         AuthenticationBloc createAuthBloc() => AuthenticationBloc(
           registerUseCase: _MockRegisterUseCase(),

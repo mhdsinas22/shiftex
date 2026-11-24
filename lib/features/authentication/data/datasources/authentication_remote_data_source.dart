@@ -342,7 +342,17 @@ class AuthenticationRemoteDataSourceImpl
       );
     }
 
-    final profile = await _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    var profile =
+        await _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    final confirmedAuthEmail = (user.email ?? '').trim().toLowerCase();
+    if (confirmedAuthEmail.isNotEmpty &&
+        profile.email.trim().toLowerCase() != confirmedAuthEmail) {
+      try {
+        await _supabaseClient.rpc('sync_customer_profile_email');
+        profile =
+            await _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+      } catch (_) {}
+    }
     if (profile.id != user.id) {
       await _clearLocalSessionBestEffort();
       await _secureStorageService.clearUserAuthDataOnLogout();

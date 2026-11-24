@@ -67,6 +67,20 @@ void main() {
       expect(
         AppRouter.evaluateAuthRedirect(
           authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.changeEmail,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
+          matchedLocation: RoutesNames.changePhone,
+        ),
+        RoutesNames.splash,
+      );
+      expect(
+        AppRouter.evaluateAuthRedirect(
+          authState: const AuthenticationInitial(),
           matchedLocation: RoutesNames.splash,
         ),
         isNull,
@@ -115,6 +129,20 @@ void main() {
           AppRouter.evaluateAuthRedirect(
             authState: const Unauthenticated(),
             matchedLocation: RoutesNames.changePassword,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.changeEmail,
+          ),
+          RoutesNames.login,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: const Unauthenticated(),
+            matchedLocation: RoutesNames.changePhone,
           ),
           RoutesNames.login,
         );
@@ -213,6 +241,20 @@ void main() {
           expect(
             AppRouter.evaluateAuthRedirect(
               authState: restrictedState,
+              matchedLocation: RoutesNames.changeEmail,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
+              matchedLocation: RoutesNames.changePhone,
+            ),
+            RoutesNames.pendingApproval,
+          );
+          expect(
+            AppRouter.evaluateAuthRedirect(
+              authState: restrictedState,
               matchedLocation: RoutesNames.login,
             ),
             RoutesNames.pendingApproval,
@@ -274,6 +316,20 @@ void main() {
           AppRouter.evaluateAuthRedirect(
             authState: approvedState,
             matchedLocation: RoutesNames.changePassword,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.changeEmail,
+          ),
+          isNull,
+        );
+        expect(
+          AppRouter.evaluateAuthRedirect(
+            authState: approvedState,
+            matchedLocation: RoutesNames.changePhone,
           ),
           isNull,
         );

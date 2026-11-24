@@ -93,8 +93,23 @@ class ErrorMapper {
     if (code == 'user_already_exists' ||
         code == 'email_exists' ||
         msg.contains('user already registered') ||
-        msg.contains('already been registered')) {
+        msg.contains('already been registered') ||
+        msg.contains('email address is already') ||
+        msg.contains('duplicate key value')) {
       return const EmailAlreadyRegisteredFailure();
+    }
+
+    if (code == 'email_address_invalid' ||
+        msg.contains('unable to validate email address') ||
+        msg.contains('invalid email format')) {
+      return const ValidationFailure('Enter a valid email address.');
+    }
+
+    if (code == 'same_email' ||
+        msg.contains('new email should be different')) {
+      return const ValidationFailure(
+        'New email must be different from your current email.',
+      );
     }
 
     if (code == 'email_not_confirmed' ||

@@ -143,6 +143,12 @@ class _CustomerQrPageState extends State<CustomerQrPage>
           onChangePassword: () {
             router?.push(RoutesNames.changePassword);
           },
+          onChangeEmail: () {
+            router?.push(RoutesNames.changeEmail);
+          },
+          onChangePhone: () {
+            router?.push(RoutesNames.changePhone);
+          },
           onSignOut: () {
             Navigator.of(sheetContext).pop();
             authBloc?.add(const LogoutRequested());

@@ -14,7 +14,9 @@ import 'package:shiftex/features/authentication/presentation/pages/reset_code_pa
 import 'package:shiftex/features/authentication/presentation/pages/set_new_password_page.dart';
 import 'package:shiftex/features/authentication/presentation/pages/verify_email_otp_page.dart';
 import 'package:shiftex/features/activity_history/presentation/pages/activity_history_page.dart';
+import 'package:shiftex/features/change_email/presentation/pages/change_email_page.dart';
 import 'package:shiftex/features/change_password/presentation/pages/change_password_page.dart';
+import 'package:shiftex/features/change_phone/presentation/pages/change_phone_page.dart';
 import 'package:shiftex/features/claim_rewards/presentation/pages/claim_rewards_page.dart';
 import 'package:shiftex/features/customer_qr/presentation/pages/customer_qr_page.dart';
 import 'package:shiftex/features/home/presentation/pages/home_page.dart';
@@ -174,6 +176,14 @@ class AppRouter {
           path: RoutesNames.changePassword,
           builder: (context, state) => const ChangePasswordPage(),
         ),
+        GoRoute(
+          path: RoutesNames.changeEmail,
+          builder: (context, state) => const ChangeEmailPage(),
+        ),
+        GoRoute(
+          path: RoutesNames.changePhone,
+          builder: (context, state) => const ChangePhonePage(),
+        ),
       ],
     );
   }
@@ -210,7 +220,9 @@ class AppRouter {
           matchedLocation == RoutesNames.claimRewards ||
           matchedLocation == RoutesNames.activityHistory ||
           matchedLocation == RoutesNames.notifications ||
-          matchedLocation == RoutesNames.changePassword) {
+          matchedLocation == RoutesNames.changePassword ||
+          matchedLocation == RoutesNames.changeEmail ||
+          matchedLocation == RoutesNames.changePhone) {
         final profile = authState.currentProfile;
         if (profile == null || !profile.isApproved) {
           return RoutesNames.splash;
@@ -236,6 +248,8 @@ class AppRouter {
           matchedLocation == RoutesNames.activityHistory ||
           matchedLocation == RoutesNames.notifications ||
           matchedLocation == RoutesNames.changePassword ||
+          matchedLocation == RoutesNames.changeEmail ||
+          matchedLocation == RoutesNames.changePhone ||
           isForgotFromChangePassword;
       return isAllowedRoute ? null : RoutesNames.home;
     }
@@ -320,6 +334,8 @@ class AppRouter {
           matchedLocation == RoutesNames.activityHistory ||
           matchedLocation == RoutesNames.notifications ||
           matchedLocation == RoutesNames.changePassword ||
+          matchedLocation == RoutesNames.changeEmail ||
+          matchedLocation == RoutesNames.changePhone ||
           isForgotFromChangePassword;
       return isAllowedRoute ? null : RoutesNames.home;
     }

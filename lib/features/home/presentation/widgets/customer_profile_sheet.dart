@@ -10,6 +10,8 @@ class CustomerProfileSheet extends StatelessWidget {
   final String fallbackMobile;
   final VoidCallback onSignOut;
   final VoidCallback? onChangePassword;
+  final VoidCallback? onChangeEmail;
+  final VoidCallback? onChangePhone;
 
   const CustomerProfileSheet({
     super.key,
@@ -19,6 +21,8 @@ class CustomerProfileSheet extends StatelessWidget {
     required this.fallbackMobile,
     required this.onSignOut,
     this.onChangePassword,
+    this.onChangeEmail,
+    this.onChangePhone,
   });
 
   @override
@@ -156,6 +160,150 @@ class CustomerProfileSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
+            Material(
+              color: const Color(0xFFF8FAFC),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: AppColors.divider),
+              ),
+              child: InkWell(
+                key: const ValueKey('profile_change_email_tile'),
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onChangeEmail?.call();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAF2FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.mark_email_read_outlined,
+                          color: AppColors.primaryBlue,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Email',
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Update your registered email address',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textSecondary,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Material(
+              color: const Color(0xFFF8FAFC),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: AppColors.divider),
+              ),
+              child: InkWell(
+                key: const ValueKey('profile_change_phone_tile'),
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onChangePhone?.call();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAF2FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.phone_iphone_rounded,
+                          color: AppColors.primaryBlue,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Change Phone Number',
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Update your registered 10-digit mobile number',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textSecondary,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             Material(
               color: const Color(0xFFF8FAFC),
               shape: RoundedRectangleBorder(
