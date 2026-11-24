@@ -208,7 +208,7 @@ void main() {
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Create password'),
-        'Password1',
+        'Password1!',
       );
       await tester.pump();
 
@@ -304,11 +304,11 @@ void main() {
 
       await tester.enterText(
         find.widgetWithText(TextFormField, 'New password'),
-        'NewPassword1',
+        'NewPassword1!',
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Confirm new password'),
-        'NewPassword1',
+        'NewPassword1!',
       );
       await tester.pump();
 

@@ -170,14 +170,14 @@ class Validators {
     return null;
   }
 
-  /// Validates the new password against strong password rules and distinctness.
-  static String? validateStrongNewPassword(
+  /// Validates a password against all 5 strong password security criteria.
+  static String? validateStrongPassword(
     String? value, {
-    String? currentPassword,
+    String emptyMessage = 'Password is required',
   }) {
     final raw = value ?? '';
     if (raw.isEmpty) {
-      return 'New password is required';
+      return emptyMessage;
     }
     if (!hasPasswordMinLength(raw)) {
       return 'Password must be at least 8 characters';
@@ -194,6 +194,22 @@ class Validators {
     if (!hasPasswordSpecialChar(raw)) {
       return 'Include at least 1 special character';
     }
+    return null;
+  }
+
+  /// Validates the new password against strong password rules and distinctness.
+  static String? validateStrongNewPassword(
+    String? value, {
+    String? currentPassword,
+  }) {
+    final strongError = validateStrongPassword(
+      value,
+      emptyMessage: 'New password is required',
+    );
+    if (strongError != null) {
+      return strongError;
+    }
+    final raw = value ?? '';
     if (currentPassword != null &&
         currentPassword.isNotEmpty &&
         raw == currentPassword) {

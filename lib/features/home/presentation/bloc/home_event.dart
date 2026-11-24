@@ -56,3 +56,7 @@ class HomeCampaignActionTapped extends HomeEvent {
   @override
   List<Object?> get props => [advertisementId, eventType, promoCode];
 }
+
+class HomeSessionReset extends HomeEvent {
+  const HomeSessionReset();
+}

@@ -155,7 +155,7 @@ class ErrorMapper {
         );
       }
       return const ValidationFailure(
-        'Password must be at least 8 characters and include at least 1 number.',
+        'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
       );
     }
 

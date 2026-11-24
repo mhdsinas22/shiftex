@@ -7,6 +7,7 @@ import 'package:shiftex/features/account_approval/presentation/bloc/account_appr
 class AccountApprovalBloc
     extends Bloc<AccountApprovalEvent, AccountApprovalState> {
   final GetApprovalStatusUseCase _getApprovalStatusUseCase;
+  int _requestGeneration = 0;
 
   AccountApprovalBloc({
     required GetApprovalStatusUseCase getApprovalStatusUseCase,
@@ -14,6 +15,7 @@ class AccountApprovalBloc
        super(const AccountApprovalInitial()) {
     on<LoadApprovalStatusRequested>(_onFetchApprovalStatus);
     on<RefreshApprovalStatusRequested>(_onFetchApprovalStatus);
+    on<AccountApprovalReset>(_onReset);
   }
 
   Future<void> _onFetchApprovalStatus(
@@ -22,9 +24,12 @@ class AccountApprovalBloc
   ) async {
     if (state is AccountApprovalLoading) return;
     final previousProfile = state.profile;
+    final generation = _requestGeneration;
     emit(AccountApprovalLoading(profile: previousProfile));
 
     final result = await _getApprovalStatusUseCase(const NoParams());
+    if (isClosed || generation != _requestGeneration) return;
+
     result.fold(
       (failure) => emit(
         AccountApprovalError(
@@ -34,5 +39,10 @@ class AccountApprovalBloc
       ),
       (profile) => emit(AccountApprovalLoaded(profile)),
     );
+  }
+
+  void _onReset(AccountApprovalReset event, Emitter<AccountApprovalState> emit) {
+    _requestGeneration++;
+    emit(const AccountApprovalInitial());
   }
 }

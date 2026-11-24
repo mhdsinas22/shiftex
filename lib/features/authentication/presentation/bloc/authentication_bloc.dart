@@ -35,6 +35,10 @@ class AuthenticationBloc
 
   StreamSubscription<String>? _authSessionSubscription;
   bool _isProcessingPasswordRecovery = false;
+  bool _isLoggingOut = false;
+  bool _isSigningIn = false;
+  int _operationGeneration = 0;
+  Future<void>? _logoutInFlight;
 
   AuthenticationBloc({
     required RegisterUseCase registerUseCase,
@@ -71,15 +75,23 @@ class AuthenticationBloc
     on<AuthSessionChanged>(_onAuthSessionChanged);
     on<CheckApprovalStatusRequested>(_onCheckApprovalStatusRequested);
 
+    _authSessionSubscription?.cancel();
     _authSessionSubscription = _authRepository.authSessionEvents.listen((
       eventName,
     ) {
       if (eventName == 'signedOut') {
-        if (!_isProcessingPasswordRecovery && state is! PasswordResetSuccess) {
+        if (!_isProcessingPasswordRecovery &&
+            !_isLoggingOut &&
+            !_isSigningIn &&
+            state is! PasswordResetSuccess) {
           add(AuthSessionChanged(sessionEvent: eventName));
         }
       } else if (eventName == 'passwordRecovery') {
         add(AuthSessionChanged(sessionEvent: eventName));
+      } else if (eventName == 'signedIn' || eventName == 'tokenRefreshed') {
+        if (!_isProcessingPasswordRecovery && !_isLoggingOut && !_isSigningIn) {
+          add(AuthSessionChanged(sessionEvent: eventName));
+        }
       }
     });
   }
@@ -173,6 +185,7 @@ class AuthenticationBloc
     // Prevent repeated verification requests while one is in progress
     if (state is AuthenticationLoading) return;
     final email = event.email.trim().toLowerCase();
+    final generation = ++_operationGeneration;
 
     emit(AuthenticationLoading(activeEmail: email));
 
@@ -184,6 +197,8 @@ class AuthenticationBloc
         mobileNumber: event.mobileNumber,
       ),
     );
+
+    if (isClosed || generation != _operationGeneration) return;
 
     result.fold(
       (failure) => emit(AuthenticationFailure(failure, email: email)),
@@ -219,42 +234,95 @@ class AuthenticationBloc
     LoginRequested event,
     Emitter<AuthenticationState> emit,
   ) async {
-    if (state is AuthenticationLoading) return;
+    if (_isSigningIn) return;
+    _isSigningIn = true;
+    _isProcessingPasswordRecovery = false;
+    final generation = ++_operationGeneration;
+
     emit(const AuthenticationLoading());
 
-    final result = await _loginUseCase(
-      LoginParams(
-        identifier: event.identifier,
-        password: event.password,
-        rememberMe: event.rememberMe,
-      ),
-    );
+    try {
+      // Wait for any in-flight logout teardown so User A signOut never races
+      // with User B signInWithPassword.
+      final pendingLogout = _logoutInFlight;
+      if (pendingLogout != null) {
+        await pendingLogout.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {},
+        );
+      }
 
-    result.fold(
-      (failure) {
-        if (failure is EmailNotVerifiedFailure && failure.email.isNotEmpty) {
-          emit(
-            OtpVerificationRequired(
-              email: failure.email,
-              infoMessage: failure.message,
-            ),
-          );
-        } else {
-          emit(AuthenticationFailure(failure));
-        }
-      },
-      (profile) => emit(_mapProfileToState(profile)),
-    );
+      if (isClosed || generation != _operationGeneration) return;
+
+      final result = await _loginUseCase(
+        LoginParams(
+          identifier: event.identifier,
+          password: event.password,
+          rememberMe: event.rememberMe,
+        ),
+      );
+
+      if (isClosed || generation != _operationGeneration) return;
+
+      result.fold(
+        (failure) {
+          if (failure is EmailNotVerifiedFailure && failure.email.isNotEmpty) {
+            emit(
+              OtpVerificationRequired(
+                email: failure.email,
+                infoMessage: failure.message,
+              ),
+            );
+          } else {
+            emit(AuthenticationFailure(failure));
+          }
+        },
+        (profile) => emit(_mapProfileToState(profile)),
+      );
+    } finally {
+      if (generation == _operationGeneration) {
+        _isSigningIn = false;
+      }
+    }
   }
 
   Future<void> _onLogoutRequested(
     LogoutRequested event,
     Emitter<AuthenticationState> emit,
   ) async {
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+    _isSigningIn = false;
     _isProcessingPasswordRecovery = false;
-    emit(const AuthenticationLoading());
-    await _logoutUseCase(const NoParams());
-    emit(const Unauthenticated());
+
+    final previous = _currentProfile;
+    final generation = ++_operationGeneration;
+    final logoutCompleter = Completer<void>();
+    _logoutInFlight = logoutCompleter.future;
+
+    emit(AuthenticationLoading(currentProfile: previous));
+
+    try {
+      final result = await _logoutUseCase(const NoParams());
+
+      if (isClosed || generation != _operationGeneration) return;
+
+      result.fold(
+        (failure) =>
+            emit(AuthenticationFailure(failure, previousProfile: previous)),
+        (_) => emit(const Unauthenticated()),
+      );
+    } finally {
+      if (!logoutCompleter.isCompleted) {
+        logoutCompleter.complete();
+      }
+      if (identical(_logoutInFlight, logoutCompleter.future)) {
+        _logoutInFlight = null;
+      }
+      if (generation == _operationGeneration) {
+        _isLoggingOut = false;
+      }
+    }
   }
 
   Future<void> _onForgotPasswordRequested(
@@ -344,6 +412,8 @@ class AuthenticationBloc
     AuthSessionChanged event,
     Emitter<AuthenticationState> emit,
   ) async {
+    final generation = ++_operationGeneration;
+
     if (event.sessionEvent == 'passwordRecovery') {
       _isProcessingPasswordRecovery = true;
       emit(PasswordResetVerified(email: _activeEmail ?? ''));
@@ -357,11 +427,13 @@ class AuthenticationBloc
       return;
     }
 
-    if (_isProcessingPasswordRecovery) {
+    if (_isProcessingPasswordRecovery || _isLoggingOut || _isSigningIn) {
       return;
     }
 
     final result = await _getCurrentSessionProfileUseCase(const NoParams());
+    if (isClosed || generation != _operationGeneration) return;
+
     result.fold(
       (failure) {
         if (failure is EmailNotVerifiedFailure && failure.email.isNotEmpty) {
@@ -391,9 +463,12 @@ class AuthenticationBloc
   ) async {
     if (state is AuthenticationLoading) return;
     final previous = _currentProfile;
+    final generation = ++_operationGeneration;
     emit(AuthenticationLoading(currentProfile: previous));
 
     final result = await _getApprovalStatusUseCase(const NoParams());
+    if (isClosed || generation != _operationGeneration) return;
+
     result.fold(
       (failure) {
         if (failure is SessionExpiredFailure) {

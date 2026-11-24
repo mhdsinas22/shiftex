@@ -25,6 +25,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   StreamSubscription<NotificationRealtimeEvent>? _realtimeSub;
   StreamSubscription<NotificationRealtimeConnectionState>? _connectionSub;
   int _navSeq = 0;
+  int _sessionGeneration = 0;
+  Future<void>? _stopInFlight;
 
   NotificationBloc({
     required GetNotificationsUseCase getNotificationsUseCase,
@@ -61,24 +63,26 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final trimmedUserId = event.userId.trim();
     if (trimmedUserId.isEmpty) return;
 
+    final pendingStop = _stopInFlight;
+    if (pendingStop != null) {
+      await pendingStop;
+      if (isClosed) return;
+    }
+
     if (state.activeUserId == trimmedUserId && _realtimeSub != null) {
       add(const NotificationUnreadCountRequested());
       return;
     }
 
+    final generation = ++_sessionGeneration;
     final previousUserId = state.activeUserId;
     await _cancelSubscriptions();
     if (previousUserId != null && previousUserId != trimmedUserId) {
       await _watchNotificationsRealtimeUseCase.stop(userId: previousUserId);
-      emit(const NotificationState());
     }
+    if (isClosed || generation != _sessionGeneration) return;
 
-    emit(
-      state.copyWith(
-        activeUserId: trimmedUserId,
-        clearErrorMessage: true,
-      ),
-    );
+    emit(NotificationState(activeUserId: trimmedUserId));
 
     try {
       _connectionSub = _watchNotificationsRealtimeUseCase
@@ -117,9 +121,25 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     final previousUserId = state.activeUserId;
-    await _cancelSubscriptions();
-    await _watchNotificationsRealtimeUseCase.stop(userId: previousUserId);
+    _sessionGeneration++;
+    final stopCompleter = Completer<void>();
+    _stopInFlight = stopCompleter.future;
+
     emit(const NotificationState());
+
+    try {
+      await Future.wait([
+        _cancelSubscriptions(),
+        _watchNotificationsRealtimeUseCase.stop(userId: previousUserId),
+      ]);
+    } finally {
+      if (!stopCompleter.isCompleted) {
+        stopCompleter.complete();
+      }
+      if (identical(_stopInFlight, stopCompleter.future)) {
+        _stopInFlight = null;
+      }
+    }
   }
 
   Future<void> _onLoadRequested(
@@ -187,6 +207,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       ),
     );
 
+    final generation = _sessionGeneration;
+    final expectedUserId = state.activeUserId;
     final result = await _getNotificationsUseCase(
       GetNotificationsParams(
         filter: filter,
@@ -195,6 +217,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         syncCampaigns: syncCampaigns,
       ),
     );
+
+    if (isClosed ||
+        generation != _sessionGeneration ||
+        state.activeUserId != expectedUserId) {
+      return;
+    }
 
     result.fold(
       (failure) {
@@ -246,6 +274,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
     emit(state.copyWith(isLoadingMore: true));
 
+    final generation = _sessionGeneration;
+    final expectedUserId = state.activeUserId;
     final result = await _getNotificationsUseCase(
       GetNotificationsParams(
         filter: state.activeFilter,
@@ -254,6 +284,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         syncCampaigns: false,
       ),
     );
+
+    if (isClosed ||
+        generation != _sessionGeneration ||
+        state.activeUserId != expectedUserId) {
+      return;
+    }
 
     result.fold(
       (failure) {
@@ -328,7 +364,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       ),
     );
 
+    final generation = _sessionGeneration;
+    final expectedUserId = state.activeUserId;
     final result = await _markNotificationReadUseCase(event.notificationId);
+    if (isClosed ||
+        generation != _sessionGeneration ||
+        state.activeUserId != expectedUserId) {
+      return;
+    }
     result.fold(
       (failure) {
         emit(
@@ -481,7 +524,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       ),
     );
 
+    final generation = _sessionGeneration;
+    final expectedUserId = state.activeUserId;
     final result = await _markAllNotificationsReadUseCase();
+    if (isClosed ||
+        generation != _sessionGeneration ||
+        state.activeUserId != expectedUserId) {
+      return;
+    }
     result.fold(
       (failure) {
         emit(
@@ -529,6 +579,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) {
     final rtEvent = event.realtimeEvent;
     final activeUid = state.activeUserId;
+    if (activeUid == null || activeUid.trim().isEmpty) {
+      return;
+    }
 
     if (rtEvent.eventType == NotificationRealtimeEventType.delete) {
       final deletedId = rtEvent.deletedId;
@@ -571,7 +624,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
     final incoming = rtEvent.notification;
     if (incoming == null) return;
-    if (activeUid != null && incoming.userId != activeUid) return;
+    if (incoming.userId != activeUid) return;
 
     final existingIndex = state.notifications.indexWhere(
       (item) => item.id == incoming.id,
@@ -661,7 +714,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     NotificationUnreadCountRequested event,
     Emitter<NotificationState> emit,
   ) async {
+    final generation = _sessionGeneration;
+    final expectedUserId = state.activeUserId;
     final result = await _getUnreadNotificationCountUseCase();
+    if (isClosed ||
+        generation != _sessionGeneration ||
+        state.activeUserId != expectedUserId) {
+      return;
+    }
     result.fold(
       (_) {},
       (unreadCount) {
@@ -715,10 +775,16 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   }
 
   Future<void> _cancelSubscriptions() async {
-    await _realtimeSub?.cancel();
+    final realtimeSub = _realtimeSub;
+    final connectionSub = _connectionSub;
     _realtimeSub = null;
-    await _connectionSub?.cancel();
     _connectionSub = null;
+    if (realtimeSub != null) {
+      unawaited(realtimeSub.cancel());
+    }
+    if (connectionSub != null) {
+      unawaited(connectionSub.cancel());
+    }
   }
 
   @override

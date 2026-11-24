@@ -14,3 +14,7 @@ class LoadApprovalStatusRequested extends AccountApprovalEvent {
 class RefreshApprovalStatusRequested extends AccountApprovalEvent {
   const RefreshApprovalStatusRequested();
 }
+
+class AccountApprovalReset extends AccountApprovalEvent {
+  const AccountApprovalReset();
+}

@@ -11,7 +11,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GenerateClaimQrUseCase _generateClaimQrUseCase;
   final TrackAdvertisementEventUseCase _trackAdvertisementEventUseCase;
 
-  final String _sessionId;
+  late String _sessionId;
+  int _sessionCounter = 0;
+  int _requestGeneration = 0;
   final Set<String> _celebratedCycleDates = <String>{};
 
   HomeBloc({
@@ -32,6 +34,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeClaimQrModalDismissed>(_onClaimQrModalDismissed);
     on<HomeStreakCelebrationDismissed>(_onStreakCelebrationDismissed);
     on<HomeCampaignActionTapped>(_onCampaignActionTapped);
+    on<HomeSessionReset>(_onSessionReset);
   }
 
   Future<void> _onLoadRequested(
@@ -83,12 +86,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit, {
     required bool performDailyCheckIn,
   }) async {
+    final generation = _requestGeneration;
     final result = await _getHomeDashboardUseCase(
       GetHomeDashboardParams(
         performDailyCheckIn: performDailyCheckIn,
         sessionId: _sessionId,
       ),
     );
+
+    if (isClosed || generation != _requestGeneration) return;
 
     result.fold(
       (failure) {
@@ -150,7 +156,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ),
     );
 
+    final generation = _requestGeneration;
     final result = await _generateClaimQrUseCase(const NoParams());
+    if (isClosed || generation != _requestGeneration) return;
     result.fold(
       (failure) {
         emit(
@@ -215,5 +223,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     }
+  }
+
+  void _onSessionReset(HomeSessionReset event, Emitter<HomeState> emit) {
+    _requestGeneration++;
+    _celebratedCycleDates.clear();
+    _sessionCounter++;
+    _sessionId =
+        'sess_${DateTime.now().millisecondsSinceEpoch}_$_sessionCounter';
+    emit(const HomeState());
   }
 }

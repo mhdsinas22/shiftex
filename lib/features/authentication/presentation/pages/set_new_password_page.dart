@@ -7,6 +7,7 @@ import 'package:shiftex/core/extensions/context_extensions.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
 import 'package:shiftex/core/utils/responsive_layout.dart';
 import 'package:shiftex/core/utils/validators.dart';
+import 'package:shiftex/core/widgets/password_strength_card.dart';
 import 'package:shiftex/core/widgets/shiiftex_auth_scaffold.dart';
 import 'package:shiftex/core/widgets/shiiftex_logo_badge.dart';
 import 'package:shiftex/core/widgets/shiiftex_primary_button.dart';
@@ -14,7 +15,6 @@ import 'package:shiftex/core/widgets/shiiftex_text_field.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_bloc.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_event.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
-import 'package:shiftex/features/authentication/presentation/widgets/password_requirement_indicator.dart';
 
 class SetNewPasswordPage extends StatefulWidget {
   const SetNewPasswordPage({super.key});
@@ -93,7 +93,7 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: _obscureNew,
                   textInputAction: TextInputAction.next,
-                  validator: Validators.validatePassword,
+                  validator: Validators.validateStrongNewPassword,
                   onChanged: (_) => setState(() {}),
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -108,13 +108,8 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: PasswordRequirementIndicator(
-                    password: _newPasswordController.text,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                PasswordStrengthCard(password: _newPasswordController.text),
                 SizedBox(height: responsive.scaleVertical(14)),
                 ShiiftexTextField(
                   controller: _confirmPasswordController,
@@ -123,10 +118,11 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
                   obscureText: _obscureConfirm,
                   textInputAction: TextInputAction.done,
                   validator:
-                      (val) => Validators.validateConfirmPassword(
+                      (val) => Validators.validateConfirmNewPassword(
                         val,
                         _newPasswordController.text,
                       ),
+                  onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => _onUpdatePassword(),
                   suffixIcon: IconButton(
                     onPressed: () {

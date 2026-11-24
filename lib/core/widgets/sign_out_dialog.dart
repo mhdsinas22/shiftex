@@ -6,58 +6,71 @@ import 'package:shiftex/features/authentication/presentation/bloc/authentication
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
 
 void signOutDialog(BuildContext context) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
   showDialog(
     context: context,
     builder: (dialogContext) {
       return BlocConsumer<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           final isLoading = state is AuthenticationLoading;
-          return AlertDialog(
-            backgroundColor: AppColors.white,
-            title: Text("SignOut"),
-            content: Text('Are you sure you want to sign out of your account?'),
-            actions: [
-              TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        Navigator.of(context).pop();
-                      },
-                child: const Text("Cancel"),
+          return PopScope(
+            canPop: !isLoading,
+            child: AlertDialog(
+              backgroundColor: AppColors.white,
+              title: const Text("Sign Out"),
+              content: const Text(
+                'Are you sure you want to sign out of your account?',
               ),
-              TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        context.read<AuthenticationBloc>().add(
-                          LogoutRequested(),
-                        );
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.errorRed,
+              actions: [
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (dialogContext.mounted &&
+                              Navigator.of(dialogContext).canPop()) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        },
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          context.read<AuthenticationBloc>().add(
+                            const LogoutRequested(),
+                          );
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.errorRed,
+                          ),
+                        )
+                      : Text(
+                          "Sign Out",
+                          style: TextStyle(color: AppColors.errorRed),
                         ),
-                      )
-                    : Text(
-                        "SignOut",
-                        style: TextStyle(color: AppColors.errorRed),
-                      ),
-              ),
-            ],
+                ),
+              ],
+            ),
           );
         },
         listener: (context, state) {
           if (state is Unauthenticated) {
-            Navigator.of(dialogContext).pop();
+            if (dialogContext.mounted && Navigator.of(dialogContext).canPop()) {
+              Navigator.of(dialogContext).pop();
+            }
           } else if (state is AuthenticationFailure) {
-            Navigator.of(dialogContext).pop();
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Un Authenction the user")));
+            if (dialogContext.mounted && Navigator.of(dialogContext).canPop()) {
+              Navigator.of(dialogContext).pop();
+            }
+            messenger?.showSnackBar(
+              SnackBar(content: Text(state.failure.message)),
+            );
           }
         },
       );

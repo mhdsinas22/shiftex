@@ -92,4 +92,17 @@ class SecureStorageService {
       await _storage.delete(key: _pendingMobileKey);
     } catch (_) {}
   }
+
+  /// Clears previous user's authentication identifiers and pending registration
+  /// context during logout without deleting global app preferences.
+  Future<void> clearUserAuthDataOnLogout() async {
+    try {
+      await _storage.delete(key: _rememberedIdentifierKey);
+      await _storage.delete(key: _pendingVerificationEmailKey);
+      await _storage.delete(key: _pendingFullNameKey);
+      await _storage.delete(key: _pendingMobileKey);
+    } catch (_) {
+      // Fail gracefully if platform keychain is unavailable in unit tests
+    }
+  }
 }

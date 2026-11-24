@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:shiftex/core/errors/exceptions.dart';
 import 'package:shiftex/core/extensions/string_extensions.dart';
 import 'package:shiftex/core/services/secure_storage_service.dart';
@@ -178,6 +181,11 @@ class AuthenticationRemoteDataSourceImpl
     required String password,
     required bool rememberMe,
   }) async {
+    if (_supabaseClient.auth.currentSession != null ||
+        _supabaseClient.auth.currentUser != null) {
+      await _clearLocalSessionBestEffort();
+    }
+
     final rawIdentifier = identifier.trim();
     String targetEmail;
 
@@ -208,11 +216,20 @@ class AuthenticationRemoteDataSourceImpl
       password: password,
     );
 
-    final user = authResponse.user ?? _supabaseClient.auth.currentUser;
-    if (user == null) {
+    final user = authResponse.user;
+    final session = authResponse.session;
+    if (user == null || session == null) {
       throw const AppAuthException(
         'Invalid login credentials. Please check and try again.',
         code: 'invalid_credentials',
+      );
+    }
+
+    if (_supabaseClient.auth.currentUser?.id != user.id) {
+      await _clearLocalSessionBestEffort();
+      throw const AppAuthException(
+        'Session switch could not be verified. Please sign in again.',
+        code: 'session_expired',
       );
     }
 
@@ -224,12 +241,21 @@ class AuthenticationRemoteDataSourceImpl
       );
     }
 
+    await _secureStorageService.clearPendingRegistrationContext();
     await _secureStorageService.saveRememberMe(
       rememberMe: rememberMe,
       identifier: rawIdentifier,
     );
 
-    return _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    final profile = await _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    if (profile.id != user.id) {
+      await _clearLocalSessionBestEffort();
+      throw const AppAuthException(
+        'Authenticated profile mismatch detected. Please sign in again.',
+        code: 'session_expired',
+      );
+    }
+    return profile;
   }
 
   @override
@@ -278,7 +304,8 @@ class AuthenticationRemoteDataSourceImpl
     );
 
     // Sign out after password update so user logs in freshly on /login
-    await _supabaseClient.auth.signOut();
+    await _clearLocalSessionBestEffort();
+    await _secureStorageService.clearUserAuthDataOnLogout();
   }
 
   @override
@@ -293,7 +320,8 @@ class AuthenticationRemoteDataSourceImpl
         final refreshed = await _supabaseClient.auth.refreshSession();
         session = refreshed.session;
       } catch (_) {
-        await _supabaseClient.auth.signOut();
+        await _clearLocalSessionBestEffort();
+        await _secureStorageService.clearUserAuthDataOnLogout();
         throw const AppAuthException(
           'Your session has expired. Please sign in again.',
           code: 'session_expired',
@@ -314,12 +342,85 @@ class AuthenticationRemoteDataSourceImpl
       );
     }
 
-    return _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    final profile = await _approvalRemoteDataSource.fetchCurrentCustomerProfile();
+    if (profile.id != user.id) {
+      await _clearLocalSessionBestEffort();
+      await _secureStorageService.clearUserAuthDataOnLogout();
+      throw const AppAuthException(
+        'Your session could not be verified. Please sign in again.',
+        code: 'session_expired',
+      );
+    }
+    return profile;
   }
 
   @override
   Future<void> logout() async {
-    await _supabaseClient.auth.signOut();
+    try {
+      await _supabaseClient.auth
+          .signOut(scope: SignOutScope.local)
+          .timeout(const Duration(seconds: 8));
+    } catch (error) {
+      await Future<void>.delayed(Duration.zero);
+
+      final sessionCleared =
+          _supabaseClient.auth.currentSession == null &&
+          _supabaseClient.auth.currentUser == null;
+
+      if (_isNetworkSignOutError(error) && sessionCleared) {
+        await _secureStorageService.clearUserAuthDataOnLogout();
+        return;
+      }
+
+      if (sessionCleared) {
+        await _secureStorageService.clearUserAuthDataOnLogout();
+      }
+      rethrow;
+    }
+
+    // Allow SupabaseAuth's onAuthStateChange listener to flush persisted storage cleanup.
+    await Future<void>.delayed(Duration.zero);
+
+    if (_supabaseClient.auth.currentSession != null ||
+        _supabaseClient.auth.currentUser != null) {
+      await _clearLocalSessionBestEffort();
+      if (_supabaseClient.auth.currentSession != null ||
+          _supabaseClient.auth.currentUser != null) {
+        throw const AppAuthException(
+          'Unable to clear authentication session cleanly.',
+          code: 'session_cleanup_failed',
+        );
+      }
+    }
+
+    await _secureStorageService.clearUserAuthDataOnLogout();
+  }
+
+  Future<void> _clearLocalSessionBestEffort() async {
+    try {
+      await _supabaseClient.auth
+          .signOut(scope: SignOutScope.local)
+          .timeout(const Duration(seconds: 4));
+    } catch (_) {
+      // GoTrue removes _currentSession synchronously before network revocation.
+    }
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  bool _isNetworkSignOutError(Object error) {
+    if (error is SocketException ||
+        error is TimeoutException ||
+        error is AuthRetryableFetchException) {
+      return true;
+    }
+    final raw = error.toString().toLowerCase();
+    return raw.contains('socketexception') ||
+        raw.contains('failed host lookup') ||
+        raw.contains('network is unreachable') ||
+        raw.contains('connection refused') ||
+        raw.contains('connection reset') ||
+        raw.contains('clientexception') ||
+        raw.contains('timed out');
   }
 
   @override

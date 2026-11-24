@@ -301,13 +301,27 @@ class AppRouter {
       return matchedLocation == RoutesNames.login ? null : RoutesNames.login;
     }
 
-    // 7. Error state while on pending approval screen (e.g. offline status check)
+    // 7. Error state while already authenticated/pending (e.g. failed logout or offline status check)
     if (authState is AuthenticationFailure &&
-        authState.previousProfile != null &&
-        !authState.previousProfile!.isApproved) {
-      return matchedLocation == RoutesNames.pendingApproval
-          ? null
-          : RoutesNames.pendingApproval;
+        authState.previousProfile != null) {
+      final previous = authState.previousProfile!;
+      if (!previous.isApproved) {
+        return matchedLocation == RoutesNames.pendingApproval
+            ? null
+            : RoutesNames.pendingApproval;
+      }
+      final isForgotFromChangePassword =
+          matchedLocation == RoutesNames.forgotPassword &&
+          queryParameters['from'] == 'change-password';
+      final isAllowedRoute =
+          matchedLocation == RoutesNames.home ||
+          matchedLocation == RoutesNames.customerQr ||
+          matchedLocation == RoutesNames.claimRewards ||
+          matchedLocation == RoutesNames.activityHistory ||
+          matchedLocation == RoutesNames.notifications ||
+          matchedLocation == RoutesNames.changePassword ||
+          isForgotFromChangePassword;
+      return isAllowedRoute ? null : RoutesNames.home;
     }
 
     // 8. Unauthenticated or failure on public flow -> block /home, /pending-approval, /set-new-password, /splash

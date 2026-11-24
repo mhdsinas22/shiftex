@@ -8,6 +8,7 @@ import 'package:shiftex/core/extensions/context_extensions.dart';
 import 'package:shiftex/core/routes/routes_names.dart';
 import 'package:shiftex/core/utils/responsive_layout.dart';
 import 'package:shiftex/core/utils/validators.dart';
+import 'package:shiftex/core/widgets/password_strength_card.dart';
 import 'package:shiftex/core/widgets/registration_bonus_banner.dart';
 import 'package:shiftex/core/widgets/shiiftex_auth_scaffold.dart';
 import 'package:shiftex/core/widgets/shiiftex_info_bottom_sheet.dart';
@@ -18,7 +19,6 @@ import 'package:shiftex/features/authentication/presentation/bloc/authentication
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_event.dart';
 import 'package:shiftex/features/authentication/presentation/bloc/authentication_state.dart';
 import 'package:shiftex/features/authentication/presentation/widgets/mobile_country_text_field.dart';
-import 'package:shiftex/features/authentication/presentation/widgets/password_requirement_indicator.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -225,7 +225,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
-                  validator: Validators.validatePassword,
+                  validator: Validators.validateStrongPassword,
                   onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => _onSubmit(),
                   suffixIcon: IconButton(
@@ -241,13 +241,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: PasswordRequirementIndicator(
-                    password: _passwordController.text,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                PasswordStrengthCard(password: _passwordController.text),
                 SizedBox(height: sectionGap),
                 ShiiftexPrimaryButton(
                   label: 'Create account',

@@ -130,6 +130,14 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
+  AuthenticationBloc? _maybeReadAuthBloc(BuildContext context) {
+    try {
+      return context.read<AuthenticationBloc>();
+    } catch (_) {
+      return null;
+    }
+  }
+
   HomeDashboardEntity _resolveDashboard(
     HomeState state,
     CustomerProfileEntity? authProfile,
@@ -376,49 +384,71 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    final authBloc = _maybeReadAuthBloc(context);
+    final homeConsumer = BlocConsumer<HomeBloc, HomeState>(
+      listener: (context, state) {
+        if (state.status == HomeStatus.initial) {
+          final currentProfile = _authProfile(context);
+          if (currentProfile != null && currentProfile.isApproved) {
+            _bloc?.add(const HomeDashboardLoadRequested());
+          }
+          return;
+        }
+        if (state.status == HomeStatus.loaded &&
+            _pendingScrollSection != null) {
+          _scheduleSectionScroll();
+        }
+        if (state.feedbackMessage != null &&
+            state.feedbackMessage!.isNotEmpty) {
+          context.showFeedbackSnackBar(
+            state.feedbackMessage!,
+            isError: false,
+          );
+        } else if (state.errorMessage != null &&
+            state.errorMessage!.isNotEmpty &&
+            state.dashboard != null) {
+          context.showFeedbackSnackBar(state.errorMessage!);
+        }
+
+        if (state.showStreakCelebration && state.dashboard != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showStreakCelebrationPopup(state.dashboard!.streak);
+            }
+          });
+        }
+
+        if (state.qrModalStatus == QrModalStatus.ready &&
+            state.activeQrToken != null) {
+          final rate = state.dashboard?.wallet.pointsToInrRate ?? 0.10;
+          final token = state.activeQrToken!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showQrBottomSheet(token, rate);
+            }
+          });
+        }
+      },
+      builder: (context, state) {
+        return _buildScaffold(context, state, _authProfile(context));
+      },
+    );
+
     return BlocProvider<HomeBloc>.value(
       value: _bloc!,
-      child: BlocConsumer<HomeBloc, HomeState>(
-        listener: (context, state) {
-          if (state.status == HomeStatus.loaded &&
-              _pendingScrollSection != null) {
-            _scheduleSectionScroll();
-          }
-          if (state.feedbackMessage != null &&
-              state.feedbackMessage!.isNotEmpty) {
-            context.showFeedbackSnackBar(
-              state.feedbackMessage!,
-              isError: false,
-            );
-          } else if (state.errorMessage != null &&
-              state.errorMessage!.isNotEmpty &&
-              state.dashboard != null) {
-            context.showFeedbackSnackBar(state.errorMessage!);
-          }
-
-          if (state.showStreakCelebration && state.dashboard != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                _showStreakCelebrationPopup(state.dashboard!.streak);
-              }
-            });
-          }
-
-          if (state.qrModalStatus == QrModalStatus.ready &&
-              state.activeQrToken != null) {
-            final rate = state.dashboard?.wallet.pointsToInrRate ?? 0.10;
-            final token = state.activeQrToken!;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                _showQrBottomSheet(token, rate);
-              }
-            });
-          }
-        },
-        builder: (context, state) {
-          return _buildScaffold(context, state, authProfile);
-        },
-      ),
+      child: authBloc == null
+          ? homeConsumer
+          : BlocListener<AuthenticationBloc, AuthenticationState>(
+              listener: (context, authState) {
+                if (authState is AuthenticationSuccess &&
+                    authState.profile.isApproved &&
+                    _bloc != null &&
+                    _bloc!.state.status == HomeStatus.initial) {
+                  _bloc!.add(const HomeDashboardLoadRequested());
+                }
+              },
+              child: homeConsumer,
+            ),
     );
   }
 }
